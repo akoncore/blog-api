@@ -1,5 +1,6 @@
 #Python Modules
 import os 
+from pathlib import Path
 from datetime import timedelta
 
 #Project Modules
@@ -102,6 +103,124 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+}
+
+#---------------------------
+#Logging
+#
+LOG_DIR = Path(BASE_DIR) / "logs"
+DEBUG_LOG_PATH = LOG_DIR/"debug.log"
+INFO_LOG_PATH = LOG_DIR/"info.log"
+WARNING_LOG_PATH = LOG_DIR/"warning.log"
+ERROR_LOG_PATH = LOG_DIR/"error.log"
+CRITICAL_LOG_PATH = LOG_DIR/"critical.log"
+DJANGO_REQUEST_LOG_PATH = LOG_DIR/"django_request.log"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} |{name:36s}|:{lineno:<4d} [{levelname:8s}] - {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "[{levelname:8s}] - {message}",
+            "style": "{",
+        },
+        "django_request": {
+            "format": "{asctime} [{levelname:8s}] - {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+            "formatter": "simple",
+        },
+        "django_request_file": {
+            "level": "WARNING",
+            "class": "logging.FileHandler",
+            "filename": str(DJANGO_REQUEST_LOG_PATH),
+            "formatter": "django_request",
+        },
+        "debug_file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(DEBUG_LOG_PATH),
+            "formatter": "verbose",
+            "maxBytes": 50 * 1024**2,
+            "backupCount": 5,
+        },
+        "info_file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(INFO_LOG_PATH),
+            "formatter": "verbose",
+            "maxBytes": 10 * 1024**2,
+            "backupCount": 10,
+        },
+        "warning_file": {
+            "level": "WARNING",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(WARNING_LOG_PATH),
+            "formatter": "verbose",
+            "maxBytes": 5 * 1024**2,
+            "backupCount": 3,
+        },
+        "error_file": {
+            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(ERROR_LOG_PATH),
+            "formatter": "verbose",
+            "maxBytes": 5 * 1024**2,
+            "backupCount": 3,
+        },
+        "critical_file": {
+            "level": "CRITICAL",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(CRITICAL_LOG_PATH),
+            "formatter": "verbose",
+            "maxBytes": 5 * 1024**2,
+            "backupCount": 3,
+        },
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["django_request_file"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "django.utils.autoreload": {
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "django": {
+            "handlers": [
+                "console",
+                "debug_file",
+                "info_file",
+                "warning_file",
+                "error_file",
+                "critical_file",
+            ],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+    "root": {
+        "handlers": [
+            "console",
+            "debug_file",
+            "info_file",
+            "warning_file",
+            "error_file",
+            "critical_file",
+        ],
+        "level": "INFO",
+    },
 }
 
 #-----------------------------
