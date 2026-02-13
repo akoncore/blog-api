@@ -1,8 +1,10 @@
 #Python Modules
 import os 
+from datetime import timedelta
 
 #Project Modules
 from settings.conf import *
+
 
 
 #-----------------------
@@ -12,6 +14,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_URLCONF = 'settings.urls'
 WSGI_APPLICATION = 'settings.wsgi.application'
 ASGI_APPLICATION = 'settings.asgi.application'
+AUTH_USER_MODEL = 'users.CustomUser'
 
 
 #-------------------------
@@ -76,6 +79,30 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+#------------------------
+#REST 
+#
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny'
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+
+#---------------------------------
+#Simple-JWT
+#
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+}
 
 #-----------------------------
 #INTERNATIONALIZATION
