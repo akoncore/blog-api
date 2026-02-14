@@ -9,6 +9,7 @@ from django.db.models import (
     DateTimeField,
     CASCADE,
     SET_NULL,
+    ManyToManyField
 ) 
 
 from apps.users.models import CustomUser
@@ -51,6 +52,9 @@ class Tag(Model):
 
     def __str__(self)->str:
         return f"Name:{self.name}"
+    
+    def __repr__(self)->str:
+        return f"Tag(id={self.id}, name={self.name})"
 
 
 class Post(Model):
@@ -74,6 +78,11 @@ class Post(Model):
         on_delete=SET_NULL,
         blank=True,
         null=True,
+        related_name='post'
+    )
+    tags = ManyToManyField(
+        Tag,
+        blank=True,
         related_name='post'
     )
 

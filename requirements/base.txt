@@ -5,3 +5,13 @@ djangorestframework_simplejwt==5.5.1
 PyJWT==2.11.0
 python-decouple==3.8
 sqlparse==0.5.5
+asgiref==3.11.1
+Django==6.0.2
+django-ratelimit==4.1.0
+djangorestframework==3.16.1
+djangorestframework_simplejwt==5.5.1
+logging==0.4.9.6
+pillow==12.1.1
+PyJWT==2.11.0
+python-decouple==3.8
+sqlparse==0.5.5

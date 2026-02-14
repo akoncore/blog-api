@@ -30,7 +30,7 @@ DJANGO_AND_THIRD_PARTY_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'ratelimit',
+    #'django_ratelimit',
 ]
 PROJECT_APPS = [
     'apps.blog',

@@ -2,7 +2,7 @@
 from logging import getLogger
 
 #Django imports
-from django.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 
 #REST Framework imports
 from rest_framework.response import Response
@@ -31,7 +31,7 @@ from .models import CustomUser
 logger = getLogger(__name__)
 
 
-class UsersViewSet(ViewSet):
+class AuthViewSet(ViewSet):
     """
     Register View Set
     """
