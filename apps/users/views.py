@@ -12,7 +12,8 @@ from rest_framework.status import (
     HTTP_201_CREATED,
     HTTP_400_BAD_REQUEST,
     HTTP_205_RESET_CONTENT,
-    HTTP_200_OK
+    HTTP_200_OK,
+    HTTP_404_NOT_FOUND
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -20,7 +21,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import (
     RegisterSerializer,
     UserProfileSerializer,
-    LoginSerializer
+    LoginSerializer,
+    UpdateUserProfileSerializer,
+    ChangePasswordSerializer
 )
 from .models import CustomUser
 
@@ -169,4 +172,154 @@ class UsersViewSet(ViewSet):
             return Response(
                 {'error': 'Token refresh failed'},
                 status=HTTP_400_BAD_REQUEST
+            )
+        
+
+class UserViewSet(ViewSet):
+    """
+    User View Set
+    """
+    def retrieve(self,request,pk=None)->Response:
+        """
+        Get user profile
+        """
+        try:
+            user = CustomUser.objects.get(pk=pk)
+            serializer = UserProfileSerializer(user)
+            logger.info('User profile retrieved successfully: %s', user.pk)
+            return Response(serializer.data)
+        except CustomUser.DoesNotExist:
+            logger.warning('User not found with id: %s', pk)
+            return Response(
+                {
+                    'error': 'User not found'
+                },
+                status=HTTP_404_NOT_FOUND
+            )
+        
+    def list(self,request)->Response:
+        """
+        List all users
+        """
+        users = CustomUser.objects.all()
+        serializer = UserProfileSerializer(users, many=True)
+        logger.info('User list retrieved successfully, total users: %d', users.count())
+
+        if not users.exists():
+            logger.warning('No users found in the database')
+            return Response(
+                {
+                    'message': 'No users found'
+                },
+                status=HTTP_200_OK
+            )
+
+        return Response(
+            {
+                'users': serializer.data,
+                'total_users': users.count()
+            },
+            status=HTTP_200_OK
+        )
+    
+    def delete(self,request,pk=None)->Response:
+        """
+        Delete a user
+        """
+        try:
+            user = CustomUser.objects.get(pk=pk)
+            user.delete()
+            logger.info('User deleted successfully: %s', pk)
+            return Response(
+                {
+                    'message': 'User deleted successfully'
+                },
+                status=HTTP_205_RESET_CONTENT
+            )
+        except CustomUser.DoesNotExist:
+            logger.warning('User not found for deletion with id: %s', pk)
+            return Response(
+                {
+                    'error': 'User not found'
+                },
+                status=HTTP_404_NOT_FOUND
+            )
+    
+    @action(detail=True, methods=['put'], url_path='update-profile')
+    def update_profile(self,request,pk=None)->Response:
+        """
+        Update user profile
+        """
+        try:
+            user = CustomUser.objects.get(pk=pk)
+            serializer = UpdateUserProfileSerializer(
+                user, 
+                data=request.data, 
+                partial=True
+            )
+
+            logger.info('Updating profile for user: %s', pk)
+
+            if serializer.is_valid():
+                serializer.save()
+                logger.info('User profile updated successfully: %s', pk)
+                return Response(serializer.data)
+            
+            logger.warning(
+                'Profile update failed for user: %s, errors: %s', 
+                pk, 
+                serializer.errors
+            )
+            return Response(
+                serializer.errors,
+                status=HTTP_400_BAD_REQUEST
+            )
+        except CustomUser.DoesNotExist:
+            logger.warning('User not found for profile update with id: %s', pk)
+            return Response(
+                {
+                    'error': 'User not found'
+                },
+                status=HTTP_404_NOT_FOUND
+            )
+        
+    @action(detail=True, methods=['put'], url_path='change-password')
+    def change_password(self,request,pk=None)->Response:
+        """Change user password"""
+        try:
+            user = CustomUser.objects.get(pk=pk)
+            serializer = ChangePasswordSerializer(
+                data = request.data,
+                context={
+                    'request': request
+                }
+            )
+            logger.info('Changing password for user: %s', pk)
+
+            if serializer.is_valid():
+                user.set_password(serializer.validated_data['new_password'])
+                user.save()
+                logger.info('Password changed successfully for user: %s', pk)
+                return Response(
+                    {
+                        'message': 'Password changed successfully'
+                    },
+                    status=HTTP_200_OK
+                )
+            logger.warning(
+                'Password change failed for user: %s, errors: %s', 
+                pk, 
+                serializer.errors
+            )
+            return Response(
+                serializer.errors,
+                status=HTTP_400_BAD_REQUEST
+            )
+        except CustomUser.DoesNotExist:
+            logger.warning('User not found for password change with id: %s', pk)
+            return Response(
+                {
+                    'error': 'User not found'
+                },
+                status=HTTP_404_NOT_FOUND
             )
