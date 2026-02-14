@@ -7,7 +7,8 @@ from rest_framework.status import (
     HTTP_201_CREATED,
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
-    HTTP_204_NO_CONTENT
+    HTTP_204_NO_CONTENT,
+    HTTP_429_TOO_MANY_REQUESTS
 )
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
@@ -15,9 +16,13 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from django_ratelimit.decorators import ratelimit
+from django.core.cache import cache
+from django_ratelimit.decorators import ratelimit
 
 #python imports
 from logging import getLogger
+import hashlib
+import json
 
 #project imports
 from .models import (
@@ -42,6 +47,59 @@ from .permissions import (
 )
 
 logger = getLogger(__name__)
+
+ #------------------
+ #Helper functions
+#------------------
+def rate_limit_handler(request, view):
+    """
+    Генерирует уникальный ключ для кэширования на основе IP-адреса и URL запроса.
+    """
+    logger.warning('Rate limit exceeded for IP: %s on URL: %s', request.META.get('REMOTE_ADDR'), request.path)
+    return Response(
+        {
+            'error': 'Rate limit exceeded. Please try again later.'
+        },
+        status=HTTP_429_TOO_MANY_REQUESTS
+    )
+    
+def invalidate_posts_cache():
+    """
+    Функция для очистки кэша постов при изменении данных
+    """
+    try:
+        redis_client = cache.client.get_client()
+        pattern = 'myapp:1:posts_list_*'
+
+        keys = redis_client.keys(pattern)
+        if keys:
+            redis_client.delete(*keys)
+            logger.info('Invalidated %d cache keys for posts list', len(keys))
+    except Exception as e:
+        logger.warning('Failed to invalidate posts cache: %s', e)
+
+def publish_comment_event(comment:Comment):
+    """
+    Функция для публикации события о новом комментарии (можно расширить для интеграции с внешними системами)
+    """
+    try:
+        redis_client = cache.client.get_client()
+        event_data = {
+            'event': 'new_comment',
+            'data':{
+                'comment_id': comment.id,
+                'post_id': comment.post.id,
+                'author_id': comment.author.id,
+                'content': comment.content,
+                'created_at': comment.created_at.isoformat()
+            }
+        }
+        message = json.dumps(event_data)
+        redis_client.publish('blog_events', message)
+        logger.info('Published new comment event for comment ID: %s', comment.id)
+    except Exception as e:
+        logger.warning('Failed to publish comment event: %s', e)
+
 
 class BlogViewSet(ViewSet):
     """
@@ -114,16 +172,45 @@ class PostViewSet(ViewSet):
     ViewSet для управления постами
     """
 
+    def generate_cache_key(self, request):
+        """
+        Генерирует уникальный ключ для кэширования на основе IP-адреса и URL запроса.
+        """
+        params = {
+            'page': request.query_params.get('page', ''),
+            'ordering': request.query_params.get('ordering', '-created_at'),
+            'search': request.query_params.get('search', ''),
+            'category': request.query_params.get('category', ''),
+            'status': request.query_params.get('status', ''),
+        }
+
+        params_str = json.dumps(params, sort_keys=True)
+        params_hash = hashlib.md5(params_str.encode()).hexdigest()
+
+        return f"posts_list_{params_hash}"
+
     @action(detail=False, methods=['get'], url_path='posts')
     def posts_list(self,request)->Response:
         """
         Получить список всех постов
         """
+        cache_key = self._generate_cache_key(request)
+        cached_data = cache.get(cache_key)
+
+        if cached_data is not None:
+            # Cache HIT - данные найдены в Redis
+            logger.info(f'[CACHE HIT] {cache_key}')
+            return Response(cached_data, status=HTTP_200_OK)
+
         posts = Post.objects.all()
         serializer = PostSerializer(
             posts, 
             many=True
         )
+
+        cache.set(cache_key, response_data, timeout=60)
+        logger.info(f'[CACHED] {cache_key} for 60 seconds')
+
         logger.info('Retrieved %d posts', len(posts))
         return Response(
             {

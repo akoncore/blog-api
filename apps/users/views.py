@@ -73,7 +73,7 @@ class AuthViewSet(ViewSet):
     
 
     @ratelimit(key='ip', rate='10/m', block=True)
-    @action(detail=False,methods=['post'],url_path='token')
+    @action(detail=False,methods=['post'],url_path='login')
     def login(self,request)->Response:
         """
         Login a user
