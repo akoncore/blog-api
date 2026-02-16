@@ -8,6 +8,6 @@ router.register(r'', UserViewSet, basename='users')
 router.register(r'auth', AuthViewSet, basename='auth')
 
 urlpatterns = [
-    path('users/', include(router.urls)),
-    path('auth/', include(router.urls)),
+    path('', include(router.urls)),
+    path('', include(router.urls)),
 ]

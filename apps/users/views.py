@@ -1,5 +1,6 @@
 #Python imports
 from logging import getLogger
+from typing import Any, Dict
 
 #Django imports
 from django_ratelimit.decorators import ratelimit
@@ -33,18 +34,11 @@ from .permissions import IsOwnerOrReadOnly
 logger = getLogger(__name__)
 
 
-def rate_limit_key(request,exception)->str:
-    """Custom rate limit key function that uses user ID if authenticated, otherwise falls back to IP address"""
-   
+def rate_limit_handler(request: Any, exception: Any) -> Response:
     logger.warning(
-        f"Rate limit exceeded for user: {request.user.id if request.user.is_authenticated else 'Anonymous'}"
-        f"from IP: {request.META.get('REMOTE_ADDR')}"
-    )
-    return Response(
-        {
-            'error': 'Rate limit exceeded. Please try again later.'
-         },
-        status=HTTP_429_TOO_MANY_REQUESTS
+        'Rate limit exceeded for user: %s from IP: %s',
+        request.user.id if request.user.is_authenticated else 'Anonymous',  # ✅
+        request.META.get('REMOTE_ADDR')  # ✅
     )
 
 
@@ -59,7 +53,7 @@ class AuthViewSet(ViewSet):
         Register a new user
         """
         if getattr(request, 'limited', False):
-            return rate_limit_key(request, None)
+            return rate_limit_handler(request, None)
         
 
         email = request.data.get('request')
@@ -71,7 +65,7 @@ class AuthViewSet(ViewSet):
             user = serializer.save()
 
             refresh = RefreshToken.for_user(user)
-            
+
             logger.info('User registered successfully: %s', user.email)
             return Response(
                 {
