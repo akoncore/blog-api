@@ -113,7 +113,7 @@ class Comment(Model):
     post = ForeignKey(
         Post,
         on_delete=CASCADE,
-        related_name='post'
+        related_name='comments'
     )
     author = ForeignKey(
         CustomUser,

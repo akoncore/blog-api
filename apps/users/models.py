@@ -90,7 +90,7 @@ class CustomUserManager(BaseUserManager):
             **kwargs,
         )
         new_user.set_password(password)
-        new_user.save(using = self.db)
+        new_user.save(using=self.db)
         return new_user
 
 

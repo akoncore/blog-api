@@ -13,7 +13,8 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_205_RESET_CONTENT,
     HTTP_200_OK,
-    HTTP_404_NOT_FOUND
+    HTTP_404_NOT_FOUND,
+    HTTP_429_TOO_MANY_REQUESTS,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -26,9 +27,25 @@ from .serializers import (
     ChangePasswordSerializer
 )
 from .models import CustomUser
+from .permissions import IsOwnerOrReadOnly
 
 
 logger = getLogger(__name__)
+
+
+def rate_limit_key(request,exception)->str:
+    """Custom rate limit key function that uses user ID if authenticated, otherwise falls back to IP address"""
+   
+    logger.warning(
+        f"Rate limit exceeded for user: {request.user.id if request.user.is_authenticated else 'Anonymous'}"
+        f"from IP: {request.META.get('REMOTE_ADDR')}"
+    )
+    return Response(
+        {
+            'error': 'Rate limit exceeded. Please try again later.'
+         },
+        status=HTTP_429_TOO_MANY_REQUESTS
+    )
 
 
 class AuthViewSet(ViewSet):
@@ -41,6 +58,10 @@ class AuthViewSet(ViewSet):
         """
         Register a new user
         """
+        if getattr(request, 'limited', False):
+            return rate_limit_key(request, None)
+        
+
         email = request.data.get('request')
         serializer = RegisterSerializer(data=request.data)
 
@@ -78,6 +99,10 @@ class AuthViewSet(ViewSet):
         """
         Login a user
         """
+        if getattr(request, 'limited', False):
+            return rate_limit_key(request, None)
+        
+        
         email = request.data.get('email')
         serializer = LoginSerializer(
             data=request.data, 
@@ -179,6 +204,9 @@ class UserViewSet(ViewSet):
     """
     User View Set
     """
+
+    permission_classes = [IsOwnerOrReadOnly]
+
     def retrieve(self,request,pk=None)->Response:
         """
         Get user profile
