@@ -23,6 +23,7 @@ from django_ratelimit.decorators import ratelimit
 from logging import getLogger
 import hashlib
 import json
+import time
 
 #project imports
 from .models import (
@@ -46,59 +47,82 @@ from .permissions import (
     IsCreatePostOrReadOnly
 )
 
+
 logger = getLogger(__name__)
+
 
  #------------------
  #Helper functions
 #------------------
-def rate_limit_handler(request, view):
+def rate_limit_handler(request, exception):
     """
-    Генерирует уникальный ключ для кэширования на основе IP-адреса и URL запроса.
+    Обработчик для превышения rate limit.
+    Возвращает стандартный JSON ответ с 429 статусом.
     """
-    logger.warning('Rate limit exceeded for IP: %s on URL: %s', request.META.get('REMOTE_ADDR'), request.path)
+    logger.warning(f'Rate limit exceeded for {request.path} by {request.META.get("REMOTE_ADDR")}')
     return Response(
-        {
-            'error': 'Rate limit exceeded. Please try again later.'
-        },
+        {'detail': 'Too many requests. Try again later.'},
         status=HTTP_429_TOO_MANY_REQUESTS
     )
-    
+
+
 def invalidate_posts_cache():
     """
-    Функция для очистки кэша постов при изменении данных
+    Инвалидирует кеш списка постов.
+    
+    Удаляет все ключи с префиксом 'posts_list_' из Redis.
+    Вызывается при создании, обновлении или удалении постов.
     """
     try:
         redis_client = cache.client.get_client()
         pattern = 'myapp:1:posts_list_*'
-
+        
         keys = redis_client.keys(pattern)
         if keys:
             redis_client.delete(*keys)
-            logger.info('Invalidated %d cache keys for posts list', len(keys))
+            logger.info(f'Cache invalidated: {len(keys)} keys deleted')
     except Exception as e:
-        logger.warning('Failed to invalidate posts cache: %s', e)
+        logger.error(f'Failed to invalidate cache: {e}')
 
-def publish_comment_event(comment:Comment):
+
+def publish_comment_event(comment: Comment):
     """
-    Функция для публикации события о новом комментарии (можно расширить для интеграции с внешними системами)
+    Публикует событие о создании комментария в Redis Pub/Sub канал 'comments'.
+    
+    Args:
+        comment: Instance созданного комментария
     """
     try:
         redis_client = cache.client.get_client()
-        event_data = {
-            'event': 'new_comment',
-            'data':{
-                'comment_id': comment.id,
+        
+        # Формируем событие
+        event = {
+            'event': 'comment_created',
+            'timestamp': time.time(),
+            'data': {
+                'id': comment.id,
                 'post_id': comment.post.id,
+                'post_title': comment.post.title,
+                'post_slug': comment.post.slug,
                 'author_id': comment.author.id,
-                'content': comment.content,
-                'created_at': comment.created_at.isoformat()
+                'author_email': comment.author.email,
+                'author_name': comment.author.full_name,
+                'body': comment.body,
+                'created_at': comment.created_at.isoformat(),
             }
         }
-        message = json.dumps(event_data)
-        redis_client.publish('blog_events', message)
-        logger.info('Published new comment event for comment ID: %s', comment.id)
+        
+        # Публикуем в канал
+        message = json.dumps(event, ensure_ascii=False)
+        num_subscribers = redis_client.publish('comments', message)
+        
+        logger.info(
+            f'Published comment_created event for comment {comment.id} '
+            f'to {num_subscribers} subscriber(s)'
+        )
+        
     except Exception as e:
-        logger.warning('Failed to publish comment event: %s', e)
+        logger.error(f'Failed to publish comment event: {e}')
 
 
 class BlogViewSet(ViewSet):
@@ -181,7 +205,7 @@ class PostViewSet(ViewSet):
             'ordering': request.query_params.get('ordering', '-created_at'),
             'search': request.query_params.get('search', ''),
             'category': request.query_params.get('category', ''),
-            'status': request.query_params.get('status', ''),
+            'status': request.query_params.get('status', 'published'),
         }
 
         params_str = json.dumps(params, sort_keys=True)
@@ -202,27 +226,32 @@ class PostViewSet(ViewSet):
             logger.info(f'[CACHE HIT] {cache_key}')
             return Response(cached_data, status=HTTP_200_OK)
 
-        posts = Post.objects.all()
+        posts = Post.objects.filter(status='published').select_related(
+            'author', 'category'
+        ).prefetch_related(
+            'tags'
+        )
         serializer = PostSerializer(
             posts, 
             many=True
         )
 
+        response_data = {
+            'posts': serializer.data,
+            'message': 'Posts retrieved successfully'
+        }
         cache.set(cache_key, response_data, timeout=60)
         logger.info(f'[CACHED] {cache_key} for 60 seconds')
 
         logger.info('Retrieved %d posts', len(posts))
         return Response(
-            {
-                'posts': serializer.data,
-                'message': 'Posts retrieved successfully'
-            },
+            response_data,
             status=HTTP_200_OK
         )
     
      
     """Block = True - блокирует запросы, которые превышают лимит, и возвращает 429 Too Many Requests."""
-    @ratelimit(key='ip', rate='10/m', block=True)
+    @ratelimit(key='user_or_ip', rate='20/m',method='POST', block=True)
     @action(
         detail=False, 
         methods=['post'], 
@@ -233,9 +262,16 @@ class PostViewSet(ViewSet):
         """
         Создать новый пост
         """
+
+        if getattr(request, 'limited', False):
+            return rate_limit_handler(request, None)
+
         serializer = CreatePostSerializer(data=request.data)
         if serializer.is_valid():
             post = serializer.save(author=request.user)
+
+            invalidate_posts_cache()
+
             logger.info('Post created successfully: %s', post.title)
             return Response(
                 {
