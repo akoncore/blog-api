@@ -245,7 +245,7 @@ class PostViewSet(ViewSet):
         """
         Get a single post
         """
-        self.get_permissions('retrieve')
+
 
         logger.info(
             f"Post retrieval requested for slug: {slug}"
@@ -272,7 +272,7 @@ class PostViewSet(ViewSet):
     
     def update(self, request, slug=None)->Response:
         """Update own post"""
-        self.get_permissions('update')
+        
 
         if not request.user.is_authenticated:
             logger.warning("Unauthorized post update attempt by anonymous user")
@@ -337,7 +337,7 @@ class PostViewSet(ViewSet):
     
     def destroy(self, request, slug=None)->Response:
         """Delete own post"""
-        self.get_permissions('destroy')
+    
 
         if not request.user.is_authenticated:
             logger.warning("Unauthorized post deletion attempt by anonymous user")
@@ -380,7 +380,7 @@ class PostViewSet(ViewSet):
     @action(detail=True, methods=['get', 'post'], url_path='comments')
     def comments(self, request, slug=None)->Response:
         """LIst comments for a post or add a comment"""
-        self.get_permissions('comments')
+
 
         logger.info(f"Comments endpoint accessed for post slug: {slug} by user: {request.user.email if request.user.is_authenticated else 'Anonymous'}")
 
@@ -463,7 +463,6 @@ class CommentViewSet(ViewSet):
     def list(self, request)->Response:
         """List comments - not implemented as comments are accessed via posts"""
 
-        self.get_permissions('list')
 
         queryset = Comment.objects.all().order_by('-created_at')
         logger.info(f"Listing all comments, total count: {queryset.count()}")
@@ -479,7 +478,7 @@ class CommentViewSet(ViewSet):
     
     def retrieve(self, request, pk=None)->Response:
         """Get a single comment"""
-        self.get_permissions('retrieve')
+       
 
         logger.info(
             f"Comment retrieval requested for id: {pk}"
@@ -508,7 +507,7 @@ class CommentViewSet(ViewSet):
     
     def partial_update(self, request, pk=None)->Response:
         """Update own comment"""
-        self.get_permissions('update')
+        
 
         if not request.user.is_authenticated:
             logger.warning("Unauthorized comment update attempt by anonymous user")

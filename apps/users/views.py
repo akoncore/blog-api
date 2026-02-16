@@ -69,6 +69,9 @@ class AuthViewSet(ViewSet):
 
         if serializer.is_valid():
             user = serializer.save()
+
+            refresh = RefreshToken.for_user(user)
+            
             logger.info('User registered successfully: %s', user.email)
             return Response(
                 {
@@ -102,7 +105,7 @@ class AuthViewSet(ViewSet):
         if getattr(request, 'limited', False):
             return rate_limit_key(request, None)
         
-        
+
         email = request.data.get('email')
         serializer = LoginSerializer(
             data=request.data, 
