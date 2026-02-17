@@ -52,6 +52,12 @@ def rate_limit_handler(request: Any, exception: Any) -> Response:
         request.user.id if request.user.is_authenticated else 'Anonymous',
         request.META.get('REMOTE_ADDR')  
     )
+    return Response(
+        {
+            'detail': 'Too many requests. Please try again later.'
+        },
+        status=HTTP_429_TOO_MANY_REQUESTS   
+    )
 
 
 class AuthViewSet(ViewSet):
@@ -68,7 +74,7 @@ class AuthViewSet(ViewSet):
             return rate_limit_handler(request, None)
         
 
-        email = request.data.get('request')
+        email = request.data.get('email')
         serializer = RegisterSerializer(data=request.data)
 
         logger.info('Registering user with email: %s', email)
@@ -135,7 +141,7 @@ class AuthViewSet(ViewSet):
                         'refresh': str(refresh)
                     }
                 },
-                status=HTTP_201_CREATED
+                status=HTTP_200_OK
             )
         
         logger.warning(
@@ -148,7 +154,7 @@ class AuthViewSet(ViewSet):
             status=HTTP_400_BAD_REQUEST
         )
 
-    
+    @action(detail=False, methods=['post'], url_path='logout')
     def logout(self,request)->Response:
         """
         Logout a user
@@ -178,7 +184,7 @@ class AuthViewSet(ViewSet):
                 status=HTTP_400_BAD_REQUEST
             )
 
-
+    @action(detail=False, methods=['post'], url_path='refresh-token')
     def refresh_token(self,request)->Response:
         """
         Refresh access token
@@ -232,7 +238,10 @@ class UserViewSet(ViewSet):
             user = CustomUser.objects.get(pk=pk)
             serializer = UserProfileSerializer(user)
             logger.info('User profile retrieved successfully: %s', user.pk)
-            return Response(serializer.data)
+            return Response(
+                serializer.data,
+                status=HTTP_200_OK
+            )
         except CustomUser.DoesNotExist:
             logger.warning('User not found with id: %s', pk)
             return Response(
@@ -267,7 +276,7 @@ class UserViewSet(ViewSet):
             status=HTTP_200_OK
         )
     
-    def delete(self,request,pk=None)->Response:
+    def destroy(self,request,pk=None)->Response:
         """
         Delete a user
         """

@@ -10,5 +10,6 @@ ENV_POSSIBLE_OPTIONS = (
     "prod"
 )
 ENV_ID = config("BLOG_ENV_ID",cast=str)
-SECRET_KEY = 'django-insecure-+ada5^xvx&doe5tpzsdnlu6qb%llv6*^#4l@rh@tz((5*!u!vw'
+SECRET_KEY = config('BLOG_SECRET_KEY', default='your-secret-key')
+
 

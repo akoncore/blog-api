@@ -57,7 +57,7 @@ class RegisterSerializer(ModelSerializer):
 
         full_name = value.strip()
 
-        if not full_name and len(full_name<2):
+        if not full_name and len(full_name)<2:
             raise ValidationError(
                 {
                     'error':'Error full_name'
@@ -121,7 +121,7 @@ class LoginSerializer(Serializer):
         email = attrs.get('email')
         password = attrs.get('password')
 
-        if not email and password:
+        if not email or not password:
             raise ValidationError(
                 {
                     'error':"There is not email or password"
@@ -133,6 +133,13 @@ class LoginSerializer(Serializer):
             email = email,
             password = password
         )
+        
+        if not user:
+            raise ValidationError(
+                {
+                    'error':"User is not"
+                }
+            )
 
         if not user.is_active:
             raise ValidationError(
@@ -141,12 +148,7 @@ class LoginSerializer(Serializer):
                 }
             )
         
-        if not user:
-            raise ValidationError(
-                {
-                    'error':"User is not"
-                }
-            )
+        
         attrs['user'] = user
         attrs['email'] = user.email
         return attrs
