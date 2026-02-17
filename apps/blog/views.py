@@ -53,7 +53,17 @@ from .permissions import (
 logger = getLogger(__name__)
 
 
-def rate_limit_key(request,exception)->str:
+def is_rate_limited(request, action_name, limit) -> bool:
+    ip = request.META.get('REMOTE_ADDR')
+    cache_key = 'rate_limit_%s_%s' % (action_name, ip)
+    count = cache.get(cache_key, 0)
+    if count >= limit:
+        return True
+    cache.set(cache_key, count + 1, timeout=60)
+    return False
+
+
+def rate_limit_key(request,exception)->Response:
     """Custom rate limit key function that uses user ID if authenticated, otherwise falls back to IP address"""
    
     logger.warning(
@@ -62,7 +72,7 @@ def rate_limit_key(request,exception)->str:
     )
     return Response(
         {
-            'error': 'Rate limit exceeded. Please try again later.'
+            'detail': 'Rate limit exceeded. Please try again later.'
          },
         status=HTTP_429_TOO_MANY_REQUESTS
     )
@@ -78,7 +88,7 @@ def published_comment_event(comment: Comment)->None:
                 'comment_id': comment.id,
                 'post_id': comment.post.id,
                 'author_id': comment.author.id,
-                'content': comment.content,
+                'content': comment.body,
                 'created_at': comment.created_at.isoformat()
             }
         }
@@ -185,7 +195,7 @@ class PostViewSet(ViewSet):
             },
             status=HTTP_200_OK
         )
-    @ratelimit(key='user_or_ip', rate='5/m', block=True)
+
     def create(
         self, 
         request,
@@ -196,7 +206,7 @@ class PostViewSet(ViewSet):
         Create a new post
         """
 
-        if getattr(request, 'limited', False):
+        if is_rate_limited(request, 'create', 20):
             return rate_limit_key(request, None)
 
 
@@ -394,7 +404,7 @@ class PostViewSet(ViewSet):
         if request.method == 'GET':
             logger.info(f"Listing comments for post: {post.title} (slug: {slug})")
 
-            comments = post.comments.all().oreder_by('-created_at')
+            comments = post.comments.all().order_by('-created_at')
 
             serializer = CommentSerializer(
                 comments,

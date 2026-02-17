@@ -215,6 +215,16 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "apps.users": {
+        "handlers": ["console", "debug_file", "warning_file"],
+        "level": "DEBUG",
+        "propagate": False,
+        },
+        "apps.blog": {
+            "handlers": ["console", "debug_file", "warning_file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
     },
     "root": {
         "handlers": [

@@ -122,7 +122,7 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
         verbose_name="Staff status"
     )
     data_joined = DateTimeField(
-        auto_now=True
+        auto_now_add=True
     )
     avatar = ImageField(
         blank=True,
