@@ -121,7 +121,7 @@ class LoginSerializer(Serializer):
         email = attrs.get('email')
         password = attrs.get('password')
 
-        if not email or password:
+        if not email and password:
             raise ValidationError(
                 {
                     'error':"There is not email or password"
@@ -159,6 +159,7 @@ class UserProfileSerializer(ModelSerializer):
     class Meta:
         model = CustomUser
         fields = [
+            'id',
             'email',
             'full_name',
             'is_active'

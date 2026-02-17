@@ -127,16 +127,7 @@ class PostViewSet(ViewSet):
         return [permission() for permission in permission_classes]
     
     def list(self, request):
-        """
-        endpoints:
-        GET /api/posts/ — no auth. List published posts (paginated).
-        POST /api/posts/ — auth required. Create a new post.
-        GET /api/posts/{slug}/ — no auth. Get a single post.
-        PATCH /api/posts/{slug}/ — auth required. Update own post.
-        DELETE /api/posts/{slug}/ — auth required. Delete own post.
-        GET /api/posts/{slug}/comments/ — no auth. List comments for a post.
-        POST /api/posts/{slug}/comments/ — auth required. Add a comment.
-        """
+        
         user_info = (
             f"User_info:{request.user.id} - {request.user.email}"
             if request.user.is_authenticated 
@@ -235,7 +226,9 @@ class PostViewSet(ViewSet):
                 },
                 status=HTTP_201_CREATED
             )
-        logger.warning(f"Post creation failed for user {request.user.email}, errors: {serializer.errors}")
+        logger.warning(
+            f"Post creation failed for user {request.user.email}," 
+            f"errors: {serializer.errors}")
         return Response(
             serializer.errors,
             status=HTTP_400_BAD_REQUEST
@@ -382,7 +375,9 @@ class PostViewSet(ViewSet):
         """LIst comments for a post or add a comment"""
 
 
-        logger.info(f"Comments endpoint accessed for post slug: {slug} by user: {request.user.email if request.user.is_authenticated else 'Anonymous'}")
+        logger.info(
+            f"Comments endpoint accessed for post slug: {slug}"
+            f"by user: {request.user.email if request.user.is_authenticated else 'Anonymous'}")
 
         try:
             post = Post.objects.get(slug=slug)
@@ -428,7 +423,9 @@ class PostViewSet(ViewSet):
 
                 published_comment_event(comment)
 
-                logger.info(f"Comment added successfully by user {request.user.email} to post: {post.title} (slug: {slug})")
+                logger.info(
+                    f"Comment added successfully by user {request.user.email}"
+                    f"to post: {post.title} (slug: {slug})")
                 return Response(
                     {
                         'message': 'Comment added successfully',
@@ -436,7 +433,9 @@ class PostViewSet(ViewSet):
                     },
                     status=HTTP_201_CREATED
                  )
-            logger.error(f"Comment creation failed for user {request.user.email} on post: {post.title} (slug: {slug}), errors: {serializer.errors}")
+            logger.error(
+                f"Comment creation failed for user {request.user.email}"
+                f"on post: {post.title} (slug: {slug}), errors: {serializer.errors}")
             return Response(
                 serializer.errors,
                 status=HTTP_400_BAD_REQUEST
@@ -505,6 +504,58 @@ class CommentViewSet(ViewSet):
             status=HTTP_200_OK
         )
     
+    def destroy(self, request, pk=None)->Response:
+        """Delete own comment"""
+        
+
+        if not request.user.is_authenticated:
+            logger.warning("Unauthorized comment deletion attempt by anonymous user")
+            return Response(
+                {
+                    'error': 'Authentication required to delete a comment'
+                },
+                status=HTTP_401_UNAUTHORIZED
+            )
+        logger.info(
+            f"Comment deletion requested for id: {pk}"
+            f"by user: {request.user.email if request.user.is_authenticated else 'Anonymous'}"
+        )
+
+        try:
+            comment = Comment.objects.get(pk=pk)
+            logger.info(f"Comment found for deletion: {comment.id} for post: {comment.post.title}")
+        except Comment.DoesNotExist:
+            logger.warning(f"Comment not found for deletion with id: {pk}")
+            return Response(
+                {
+                    'error': 'Comment not found'
+                },
+                status=HTTP_404_NOT_FOUND
+            )
+        
+        if comment.author != request.user:
+            logger.warning(
+                f"Unauthorized comment deletion attempt by user {request.user.email}"
+                f"on comment id: {comment.id}"
+            )
+            
+            return Response(
+                {
+                    'error': 'You do not have permission to delete this comment'
+                },
+                status=HTTP_401_UNAUTHORIZED
+            )
+        
+        comment.delete()
+        logger.info(f"Comment deleted successfully by user {request.user.email} on comment id: {comment.id} for post: {comment.post.title}")
+        return Response(
+            {
+                'message': 'Comment deleted successfully'
+            },
+             status=HTTP_204_NO_CONTENT
+        )
+
+
     def partial_update(self, request, pk=None)->Response:
         """Update own comment"""
         

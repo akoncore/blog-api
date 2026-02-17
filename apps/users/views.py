@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 #Django imports
 from django_ratelimit.decorators import ratelimit
+from django.core.cache import cache
 
 #REST Framework imports
 from rest_framework.response import Response
@@ -18,6 +19,7 @@ from rest_framework.status import (
     HTTP_429_TOO_MANY_REQUESTS,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 #Project imports
 from .serializers import (
@@ -34,11 +36,21 @@ from .permissions import IsOwnerOrReadOnly
 logger = getLogger(__name__)
 
 
+def is_rate_limited(request, action_name, limit) -> bool:
+    ip = request.META.get('REMOTE_ADDR')
+    cache_key = 'rate_limit_%s_%s' % (action_name, ip)
+    count = cache.get(cache_key, 0)
+    if count >= limit:
+        return True
+    cache.set(cache_key, count + 1, timeout=60)
+    return False
+
+
 def rate_limit_handler(request: Any, exception: Any) -> Response:
     logger.warning(
         'Rate limit exceeded for user: %s from IP: %s',
-        request.user.id if request.user.is_authenticated else 'Anonymous',  # ✅
-        request.META.get('REMOTE_ADDR')  # ✅
+        request.user.id if request.user.is_authenticated else 'Anonymous',
+        request.META.get('REMOTE_ADDR')  
     )
 
 
@@ -46,13 +58,13 @@ class AuthViewSet(ViewSet):
     """
     Register View Set
     """
-    @ratelimit(key='ip', rate='5/m', block=True)
+
     @action(detail=False,methods=['post'],url_path='register')
     def register(self,request)->Response:
         """
         Register a new user
         """
-        if getattr(request, 'limited', False):
+        if is_rate_limited(request, 'register',10):
             return rate_limit_handler(request, None)
         
 
@@ -90,14 +102,14 @@ class AuthViewSet(ViewSet):
         )
     
 
-    @ratelimit(key='ip', rate='10/m', block=True)
+
     @action(detail=False,methods=['post'],url_path='login')
     def login(self,request)->Response:
         """
         Login a user
         """
-        if getattr(request, 'limited', False):
-            return rate_limit_key(request, None)
+        if is_rate_limited(request, 'login', 5):
+            return rate_limit_handler(request, None)
         
 
         email = request.data.get('email')
@@ -136,13 +148,13 @@ class AuthViewSet(ViewSet):
             status=HTTP_400_BAD_REQUEST
         )
 
-
+    
     def logout(self,request)->Response:
         """
         Logout a user
         """
         try:
-            refresh_token = request.data.get['refresh']
+            refresh_token = request.data.get('refresh')
             token = RefreshToken(refresh_token)
             token.blacklist()
 
@@ -172,7 +184,7 @@ class AuthViewSet(ViewSet):
         Refresh access token
         """
         try:
-            refresh_token = request.data.get['refresh']
+            refresh_token = request.data.get('refresh')
             token = RefreshToken(refresh_token)
             new_access_token = str(token.access_token)
 
@@ -202,7 +214,15 @@ class UserViewSet(ViewSet):
     User View Set
     """
 
-    permission_classes = [IsOwnerOrReadOnly]
+    def get_permissions(self):
+        
+        if self.action in ['list','retrieve']:
+            permission_classes = [AllowAny]
+        elif self.action in ['update_profile','change_password','destroy']:
+            permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
 
     def retrieve(self,request,pk=None)->Response:
         """
@@ -270,7 +290,7 @@ class UserViewSet(ViewSet):
                 status=HTTP_404_NOT_FOUND
             )
     
-    @action(detail=True, methods=['put'], url_path='update-profile')
+    @action(detail=True, methods=['patch'], url_path='update-profile')
     def update_profile(self,request,pk=None)->Response:
         """
         Update user profile
@@ -308,7 +328,7 @@ class UserViewSet(ViewSet):
                 status=HTTP_404_NOT_FOUND
             )
         
-    @action(detail=True, methods=['put'], url_path='change-password')
+    @action(detail=True, methods=['post'], url_path='change-password')
     def change_password(self,request,pk=None)->Response:
         """Change user password"""
         try:
