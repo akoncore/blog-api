@@ -1,9 +1,8 @@
 #Python imports
 from logging import getLogger
-from typing import Any, Dict
+from typing import Any
 
 #Django imports
-from django_ratelimit.decorators import ratelimit
 from django.core.cache import cache
 
 #REST Framework imports

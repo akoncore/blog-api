@@ -15,11 +15,9 @@ from rest_framework.status import (
 from rest_framework.permissions import  AllowAny
 
 #Django imports
-from django.shortcuts import get_object_or_404
-from django.utils.text import slugify
-from django_ratelimit.decorators import ratelimit
 from django.core.cache import cache
 from django.db.models import Q
+
 
 #python imports
 from logging import getLogger
