@@ -38,6 +38,7 @@ from .serializers import (
     CreatePostSerializer,
     CommentSerializer,
     EditCommentSerializer,
+    CreateCommentSerializer
 
 )
 from .permissions import (
@@ -422,7 +423,7 @@ class PostViewSet(ViewSet):
                     },
                     status=HTTP_401_UNAUTHORIZED
                 )
-            serializer = CommentSerializer(
+            serializer = CreateCommentSerializer(
                 data=request.data,
                 context={'request': request}
             )

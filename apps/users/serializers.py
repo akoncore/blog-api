@@ -179,7 +179,7 @@ class UpdateUserProfileSerializer(ModelSerializer):
         ]
 
 
-class ChangePasswordSerializer(ModelSerializer):
+class ChangePasswordSerializer(Serializer):
     """
     Change password 
     """
@@ -209,6 +209,7 @@ class ChangePasswordSerializer(ModelSerializer):
                     'error':"Old password is not correct"
                 }
             )
+    
         
     def validate(self, attrs):
         """Validate all serializer data"""

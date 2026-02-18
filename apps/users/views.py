@@ -316,7 +316,13 @@ class UserViewSet(ViewSet):
             if serializer.is_valid():
                 serializer.save()
                 logger.info('User profile updated successfully: %s', pk)
-                return Response(serializer.data)
+                return Response(
+                    {
+                        'message': 'User profile updated successfully',
+                        'user': UserProfileSerializer(user).data
+                    }
+                )
+            
             
             logger.warning(
                 'Profile update failed for user: %s, errors: %s', 

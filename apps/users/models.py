@@ -86,6 +86,7 @@ class CustomUserManager(BaseUserManager):
             full_name=full_name,
             password=password,
             is_active=True,
+            is_staff=True,
             is_superuser=True,
             **kwargs,
         )
@@ -110,7 +111,7 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
         verbose_name="User full name"
     )
     password = CharField(
-        max_length=50,
+        max_length=200,
         verbose_name="Password"
     )
     is_active = BooleanField(

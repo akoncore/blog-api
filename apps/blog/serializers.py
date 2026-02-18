@@ -204,6 +204,18 @@ class CommentSerializer(ModelSerializer):
         }
 
 
+class CreateCommentSerializer(ModelSerializer):
+
+    class Meta:
+
+        model = Comment
+        fields = ['post', 'body']
+
+    def validate_body(self, value: str) -> str:
+        if len(value) < 3:
+            raise ValidationError('Comment must be at least 3 characters long')
+        return value
+
 class EditCommentSerializer(ModelSerializer):
     
     class Meta:
