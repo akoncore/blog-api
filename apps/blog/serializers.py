@@ -80,16 +80,16 @@ class CreatePostSerializer(ModelSerializer):
     ) -> Post:
     
         tags_data = validated_data.pop('tags', [])
+ 
         title = validated_data['title']
         base_slug = slugify(title)
         slug = base_slug
         counter = 1
-
         while Post.objects.filter(slug=slug).exists():
             slug = f'{base_slug}-{counter}'
             counter += 1
         validated_data['slug'] = slug
-
+ 
         post = Post.objects.create(**validated_data)
         if tags_data:
             post.tags.set(tags_data)
@@ -158,7 +158,7 @@ class CommentSerializer(ModelSerializer):
 class CreateCommentSerializer(ModelSerializer):
     class Meta:
         model = Comment
-        fields = ['post', 'body']
+        fields = ['body']
 
     def validate_body(self, value: str) -> str:
         if len(value) < 3:

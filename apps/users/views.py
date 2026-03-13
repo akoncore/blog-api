@@ -105,12 +105,23 @@ class AuthViewSet(ViewSet):
 
     @action(detail=False, methods=['post'], url_path='logout')
     def logout(self, request) -> Response:
+        refresh_token = request.data.get('refresh')
+
+        if not refresh_token:
+            return Response(
+                {'error': 'Refresh token required'}, 
+                status=HTTP_400_BAD_REQUEST
+            )
+        
         try:
-            refresh_token = request.data.get('refresh')
             token = RefreshToken(refresh_token)
             token.blacklist()
-            logger.info('User logged out: %s', request.user.email)
-            return Response({'message': 'User logged out successfully'}, status=HTTP_205_RESET_CONTENT)
+            user_info = request.user.email if request.user.is_authenticated else 'anonymous'
+            logger.info('User logged out: %s', user_info)
+            return Response(
+                {'message': 'User logged out successfully'}, 
+                status=HTTP_205_RESET_CONTENT
+            )
         except Exception as e:
             logger.error('Logout failed: %s', str(e))
             return Response({'error': 'Logout failed'}, status=HTTP_400_BAD_REQUEST)
