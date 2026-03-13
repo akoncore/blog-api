@@ -21,16 +21,23 @@ class Command(BaseCommand):
                 if message['type'] == 'message':
                     try:
                         data = json.loads(message['data'])
+                        event_data = data.get('data', {})
+
+                        author = (
+                            event_data.get('author_name')
+                            or event_data.get('author_id', 'Unknown')
+                        )
+
                         self.stdout.write(
                             self.style.SUCCESS(
-                                f"\n[{data['event']}] "
-                                f"Comment #{data['data']['id']} "
-                                f"on post '{data['data']['post_title']}' "
-                                f"by {data['data']['author_email']}"
+                                f"\n[{data.get('event', 'unknown')}] "
+                                f"Comment #{event_data.get('id', '?')} "
+                                f"on post '{event_data.get('post_title', '?')}' "
+                                f"by {author}"
                             )
                         )
                         self.stdout.write(
-                            f"Body: {data['data']['body']}\n"
+                            f"Body: {event_data.get('body', '')}\n"
                         )
                     except json.JSONDecodeError:
                         self.stdout.write(
