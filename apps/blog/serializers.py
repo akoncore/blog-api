@@ -156,9 +156,11 @@ class CommentSerializer(ModelSerializer):
 
 
 class CreateCommentSerializer(ModelSerializer):
+
     class Meta:
         model = Comment
         fields = ['body']
+
 
     def validate_body(self, value: str) -> str:
         if len(value) < 3:

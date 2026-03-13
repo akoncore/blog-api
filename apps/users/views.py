@@ -1,7 +1,9 @@
 from logging import getLogger
 from typing import Any
 
+#Django imports
 from django.core.cache import cache
+
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
@@ -163,7 +165,9 @@ class UserViewSet(ViewSet):
             status=HTTP_200_OK
         )
 
+
     def destroy(self, request, pk=None) -> Response:
+
         
         if not request.user.is_authenticated:
             return Response({'error': 'Authentication required'}, status=HTTP_401_UNAUTHORIZED)
@@ -207,7 +211,10 @@ class UserViewSet(ViewSet):
             return Response(
                 {'message': 'Profile updated successfully', 'user': UserProfileSerializer(user).data}
             )
-        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+        return Response(
+            serializer.errors, 
+            status=HTTP_400_BAD_REQUEST
+            )
 
     @action(detail=True, methods=['post'], url_path='change-password')
     def change_password(self, request, pk=None) -> Response:

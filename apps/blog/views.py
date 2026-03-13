@@ -9,9 +9,11 @@ from rest_framework.status import (
 )
 from rest_framework.permissions import AllowAny
 
+
 #Django modules
 from django.core.cache import cache
 from django.db.models import Q
+
 from logging import getLogger
 
 #Python modules
@@ -23,6 +25,7 @@ from .models import Post, Comment
 from .serializers import (
     PostSerializer, EditPostSerializer, CreatePostSerializer,
     CommentSerializer, EditCommentSerializer, CreateCommentSerializer
+
 )
 from .permissions import (
     IsPublishedOrEdit, IsAddCommentOrReadOnly, IsCreatePostOrReadOnly
@@ -329,6 +332,23 @@ class PostViewSet(ViewSet):
                 serializer.data, 
                 status=HTTP_200_OK
             )
+
+        elif request.method == 'POST':
+            if not request.user.is_authenticated:
+                logger.warning("Unauthorized comment creation attempt by anonymous user")
+                return Response(
+                    {
+                        'error': 'Authentication required to add a comment'
+                    },
+                    status=HTTP_401_UNAUTHORIZED
+                )
+            serializer = CreateCommentSerializer(
+                data=request.data,
+                context={'request': request}
+            )
+            if serializer.is_valid():
+                comment = serializer.save(author=request.user, post=post)
+
 
         if not request.user.is_authenticated:
             return Response(

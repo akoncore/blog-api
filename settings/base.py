@@ -241,15 +241,15 @@ LOGGING = {
 
 
 # Redis Configuration
-REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-REDIS_PORT = os.getenv('REDIS_PORT', '6379')
-REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
+BLOG_REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+BLOG_REDIS_PORT = os.getenv('REDIS_PORT', '6379')
+BLOG_REDIS_URL = f"redis://{BLOG_REDIS_HOST}:{BLOG_REDIS_PORT}/0"
 
 # Django Cache
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDIS_URL,
+        'LOCATION': BLOG_REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
