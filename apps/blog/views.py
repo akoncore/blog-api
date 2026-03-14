@@ -88,7 +88,7 @@ def publish_comment_event(
                 'post_id': comment.post.id,
                 'post_title': comment.post.title,
                 'author_id': comment.author.id,
-                'author_name': comment.author.full_name,
+                'author_name': comment.author.first_name,
                 'content': comment.body,
                 'created_at': comment.created_at.isoformat()
             }

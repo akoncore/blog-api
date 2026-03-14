@@ -27,12 +27,12 @@ class RegisterSerializer(ModelSerializer):
             raise ValidationError({'error': 'There is not email'})
         return email
 
-    def validate_full_name(self, value: str) -> str:
+    def validate_first_name(self, value: str) -> str:
         
-        full_name = value.strip()
-        if not full_name or len(full_name) < 2:
+        first_name = value.strip()
+        if not first_name or len(first_name) < 2:
             raise ValidationError({'error': 'Full name must be at least 2 characters'})
-        return full_name.title()
+        return first_name.title()
 
     def validate(self, attrs: dict) -> dict:
         if attrs.get('password') != attrs.get('password1'):

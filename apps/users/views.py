@@ -147,18 +147,21 @@ class AuthViewSet(ViewSet):
         logger.info('Registering user with email: %s', email)
 
         if serializer.is_valid():
-            user = serializer.save()
-            refresh = RefreshToken.for_user(user)
-
+            user = serializer.save() 
             user_lang = request.data.get("language", "en")
             if user_lang not in ["en", "kk", "ru"]:
                 user_lang = "en"
+            user.preferred_language = user_lang
+            user.save(update_fields = ["preferred_language"])
+
+            refresh = RefreshToken.for_user(user)
 
             with translation.override(user_lang):
                 body = render_to_string(
                     "emails/welcome/body.html",
-                    {"full_name": user.full_name, "lang": user_lang}
+                    {"first_name": user.first_name, "lang": user_lang}
                 )
+                message = _('User registered successfully')
                 send_mail(
                     subject="Welcome to Blog API",
                     message="",
@@ -172,7 +175,7 @@ class AuthViewSet(ViewSet):
 
             return Response(
                 {
-                    'message': _('User registered successfully'),
+                    'message': message,
                     'user': UserProfileSerializer(user).data,
                     'tokens': {
                         'access': str(refresh.access_token),
@@ -194,13 +197,23 @@ class AuthViewSet(ViewSet):
         serializer = LoginSerializer(data=request.data, context={'request': request})
         logger.info('Login attempt for email: %s', email)
 
+        from django.utils import translation
+        logger.info(f"Current active language: {translation.get_language()}")
+        logger.info(f"Request LANGUAGE_CODE: {getattr(request, 'LANGUAGE_CODE', 'NOT SET')}")
+
         if serializer.is_valid():
             user = serializer.validated_data['user']
+            user_lang = getattr(user, 'preferred_language','en')
+            logger.info(f"User preferred_language: {user_lang}")
             refresh = RefreshToken.for_user(user)
+
+            with translation.override(user_lang):
+                message = _('User logged in successfully')
+
             logger.info('User logged in successfully: %s', user.email)
             return Response(
                 {
-                    'message': _('User logged in successfully'),
+                    'message': message,
                     'user': UserProfileSerializer(user).data,
                     'tokens': {
                         'access': str(refresh.access_token),
