@@ -34,10 +34,12 @@ DJANGO_AND_THIRD_PARTY_APPS = [
     'debug_toolbar',
     'django_extensions',
     'drf_spectacular',
+    'parler'
 ]
 PROJECT_APPS = [
     'apps.blog',
     'apps.users'
+    'apps.core'
 ]
 INSTALLED_APPS = DJANGO_AND_THIRD_PARTY_APPS + PROJECT_APPS
 
@@ -296,14 +298,16 @@ DEBUG_TOOLBAR_PANELS = [
 #-----------------------------
 #INTERNATIONALIZATION
 #
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 USE_L10N = True
 
 
-ENGLISH_LANGUAGE_CODE = "en"
+SUPPORTED_LANGUAGES = [
+    "en","kz","ru"
+]
 
 LANGUAGES = [
     ("en","English"),
@@ -314,6 +318,18 @@ LANGUAGES = [
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale'),
 ]
+
+PARLER_LANGUAGES = {
+    None: (
+        {'code': 'en',},
+        {'code': 'ru',},
+        {'code': 'kz'}
+    ),
+    'default': {
+        'fallback': 'en',             # defaults to PARLER_DEFAULT_LANGUAGE_CODE
+        'hide_untranslated': False,   # the default; let .active_translations() return fallbacks too.
+    }
+}
 
 #-----------------------------
 #STATIC

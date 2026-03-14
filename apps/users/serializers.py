@@ -1,12 +1,16 @@
+import pytz
+
+from django.contrib.auth import authenticate
+
 from rest_framework.serializers import (
     Serializer, ModelSerializer, CharField, ValidationError, EmailField,ChoiceField
 )
-from django.contrib.auth import authenticate
+
 from .models import CustomUser , PREFERRED_LANGUAGES
 
-import pytz
 
 SUPPORTED_LANGUAGE_CODES = [code for code, _ in PREFERRED_LANGUAGES]
+
 
 class RegisterSerializer(ModelSerializer):
     password = CharField(write_only=True, required=True)

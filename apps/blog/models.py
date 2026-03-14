@@ -11,6 +11,8 @@ from django.db.models import (
     SET_NULL,
     ManyToManyField
 ) 
+from django.utils.translation import gettext as _
+from parler.models import TranslatableModel, TranslatedFields
 
 from apps.users.models import CustomUser
 
@@ -18,13 +20,20 @@ class Category(Model):
     """
     Docstring для Category
     """ 
-    name = CharField(
+
+    translations = TranslatedFields(
+        name = CharField(
         max_length=100,
-        unique=True
+        unique=True,
+        verbose_name=_("name")
+    )
     )
     slug = SlugField(
         unique=True
     )
+
+    class Meta:
+        verbose_name = _("category")
 
     def __repr__(self)-> str:
         """

@@ -1,10 +1,13 @@
 from logging import getLogger
 from typing import Any
+import pytz
 
 #Django imports
 from django.core.cache import cache
 
+#Python imports
 from rest_framework.response import Response
+from rest_framework.request import Request 
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.status import (
@@ -107,25 +110,76 @@ class AuthViewSet(ViewSet):
         logger.warning('Login failed for email: %s, errors: %s', email, serializer.errors)
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['patch'], url_name='language')
-    def set_language(self,request)->Response:
-        if not request.user.is_authenticated():
-            raise ValidationError({
-                "error":"User is not autenticated"
-            }
+    @action( 
+        methods=("PATCH",), 
+        detail=False, 
+        url_path="language", 
+        url_name="language", 
+        permission_classes=(IsAuthenticated,), 
+    ) 
+    def set_language( 
+        self, 
+        request: Request, 
+        *args, 
+        **kwargs, 
+    ) -> Response: 
+        """PATCH /api/auth/language — сохранить язык пользователя""" 
+        from django.conf import settings 
+
+        lang = request.data.get("language") 
+
+        if lang not in settings.SUPPORTED_LANGUAGES: 
+            return Response( 
+                {"detail": "Invalid language.Choose from:en,ru,kk"}, 
+                status=HTTP_400_BAD_REQUEST, 
+            ) 
+
+        request.user.preferred_language = lang 
+        request.user.save(update_fields=["preferred_language"]) 
+
+        logger.info(f"Language updated: user_id={request.user.id}, lang={lang}") 
+        return Response( 
+            {"detail": "Language updated succesfully.", "language": lang}, 
+            status=HTTP_200_OK, 
         )
 
-        serializer = LanguagesSerializer(data = request.data)
+    @action( 
+        methods=("PATCH",), 
+        detail=False, 
+        url_path="timezone", 
+        url_name="timezone", 
+        permission_classes=(IsAuthenticated,), 
+    ) 
+    def set_timezone( 
+        self, 
+        request: Request, 
+        *args, 
+        **kwargs, 
+    ) -> Response: 
+        """PATCH /api/auth/timezone — сохранить часовой пояс пользователя""" 
+        tz_name = request.data.get("timezone") 
 
-        if serializer.is_valid():
-            request.user.preferred_language = serializer.validated_data['preferred_language']
-            request.user.save(update_fields = ['preferred_language'])
-            logger.info('')
-            return Response(
-                {
-                    "language":request.user.preferred_language
-                }
-            )
+        if not tz_name: 
+            return Response( 
+                {"detail":"Invalid timezone"}, 
+                status=HTTP_400_BAD_REQUEST, 
+            ) 
+        try: 
+            pytz.timezone(tz_name) 
+        except pytz.exceptions.UnknownTimeZoneError: 
+            return Response( 
+                {"detail": "Invalid timezone"}, 
+                status=HTTP_400_BAD_REQUEST, 
+            ) 
+
+        request.user.timezone = tz_name 
+        request.user.save(update_fields=["timezone"]) 
+
+        logger.info(f"Timezone updated: user_id={request.user.id}, timezone={tz_name}") 
+        return Response( 
+            {"detail": "Timezone updated successfully.", "timezone": tz_name}, 
+            status=HTTP_200_OK, 
+        )
 
 
     @action(detail=False, methods=['post'], url_path='logout')
