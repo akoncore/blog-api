@@ -16,7 +16,7 @@ from parler.models import TranslatableModel, TranslatedFields
 
 from apps.users.models import CustomUser
 
-class Category(Model):
+class Category(TranslatableModel):
     """
     Docstring для Category
     """ 

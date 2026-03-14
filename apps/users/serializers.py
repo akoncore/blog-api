@@ -1,15 +1,16 @@
 import pytz
 
 from django.contrib.auth import authenticate
+from django.conf import settings
 
 from rest_framework.serializers import (
     Serializer, ModelSerializer, CharField, ValidationError, EmailField,ChoiceField
 )
 
-from .models import CustomUser , PREFERRED_LANGUAGES
+from .models import CustomUser 
 
 
-SUPPORTED_LANGUAGE_CODES = [code for code, _ in PREFERRED_LANGUAGES]
+SUPPORTED_LANGUAGE_CODES = [code for code, _ in settings.LANGUAGES]
 
 
 class RegisterSerializer(ModelSerializer):

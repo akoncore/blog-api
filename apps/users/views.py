@@ -4,6 +4,10 @@ import pytz
 
 #Django imports
 from django.core.cache import cache
+from django.utils.translation import gettext_lazy as _
+from django.utils import translation
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 #Python imports
 from rest_framework.response import Response
@@ -11,18 +15,27 @@ from rest_framework.request import Request
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.status import (
-    HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_205_RESET_CONTENT,
-    HTTP_200_OK, HTTP_404_NOT_FOUND, HTTP_429_TOO_MANY_REQUESTS,
-    HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN,
+    HTTP_201_CREATED, 
+    HTTP_400_BAD_REQUEST, 
+    HTTP_205_RESET_CONTENT,
+    HTTP_200_OK, 
+    HTTP_404_NOT_FOUND, 
+    HTTP_429_TOO_MANY_REQUESTS,
+    HTTP_401_UNAUTHORIZED, 
+    HTTP_403_FORBIDDEN,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiResponse,
+)
+
 from .serializers import (
     RegisterSerializer, UserProfileSerializer, LoginSerializer,
     UpdateUserProfileSerializer, ChangePasswordSerializer,
-    LanguagesSerializer,TimezoneSerializer,
-    ValidationError
 )
 from .models import CustomUser
 from .permissions import IsOwnerOrReadOnly
@@ -52,6 +65,76 @@ def rate_limit_handler(request: Any, exception: Any) -> Response:
     )
 
 
+@extend_schema_view(
+    register=extend_schema(
+        summary='Register a new user',
+        description='Registers a new user and sends welcome email',
+        tags=['Authentication'],
+        request=RegisterSerializer,
+        responses={
+            201: OpenApiResponse(response=UserProfileSerializer, description='User registered successfully'),
+            400: OpenApiResponse(description='Validation error'),
+            401: OpenApiResponse(description='Authentication required'),
+            429: OpenApiResponse(description='Rate limit exceeded'),
+        }
+    ),
+    login=extend_schema(
+        summary='Login a user',
+        description='Authenticate user and return access and refresh tokens',
+        tags=['Authentication'],
+        request=LoginSerializer,
+        responses={
+            200: OpenApiResponse(response=UserProfileSerializer, description='User logged in successfully'),
+            400: OpenApiResponse(description='Validation error'),
+            401: OpenApiResponse(description='Authentication required'),
+            429: OpenApiResponse(description='Rate limit exceeded'),
+        }
+    ),
+    logout=extend_schema(
+        summary='Logout a user',
+        description='Blacklist refresh token to logout user',
+        tags=['Authentication'],
+        responses={
+            205: OpenApiResponse(description='User logged out successfully'),
+            400: OpenApiResponse(description='Refresh token required or invalid'),
+            401: OpenApiResponse(description='Authentication required'),
+        }
+    ),
+    refresh_token=extend_schema(
+        summary='Refresh access token',
+        description='Obtain new access token using refresh token',
+        tags=['Authentication'],
+        request=None,
+        responses={
+            200: OpenApiResponse(description='Access token refreshed successfully'),
+            400: OpenApiResponse(description='Token refresh failed'),
+        }
+    ),
+    set_language=extend_schema(
+        summary='Set preferred language',
+        description='Authenticated user can update preferred language',
+        tags=['Authentication'],
+        request=None,
+        responses={
+            200: OpenApiResponse(description='Language updated successfully'),
+            400: OpenApiResponse(description='Invalid language'),
+            401: OpenApiResponse(description='Authentication required'),
+        }
+    ),
+    set_timezone=extend_schema(
+        summary='Set user timezone',
+        description='Authenticated user can update timezone',
+        tags=['Authentication'],
+        request=None,
+        responses={
+            200: OpenApiResponse(description='Timezone updated successfully'),
+            400: OpenApiResponse(description='Invalid timezone'),
+            401: OpenApiResponse(description='Authentication required'),
+        }
+    ),
+)
+
+
 class AuthViewSet(ViewSet):
 
     @action(detail=False, methods=['post'], url_path='register')
@@ -66,7 +149,27 @@ class AuthViewSet(ViewSet):
         if serializer.is_valid():
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
+
+            user_lang = request.data.get("language","en")
+            if user_lang not in ["en","kk","ru"]:
+                user_lang = "en"
+
+            with translation.override(user_lang):
+                body = render_to_string(
+                    "emails/welcome/body.html",
+                    {"full_name":user.full_name, "lang":user_lang}
+                )
+                send_mail(
+                    subject="Welcome to Blog API",
+                    message="",
+                    from_email="test@blog.com",
+                    recipient_list=[user.email],
+                    html_message=body,
+                    fail_silently=True
+                )
+
             logger.info('User registered successfully: %s', user.email)
+
             return Response(
                 {
                     'message': 'User registered successfully',

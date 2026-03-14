@@ -1,0 +1,236 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Бірінші автор <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-14 09:54+0000\n"
+"PO-Revision-Date: 2026-03-14 18:00+0500\n"
+"Last-Translator: Сіздің атыңыз <сіздің@email.com>\n"
+"Language-Team: Қазақ тілі <kk@li.org>\n"
+"Language: kk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps/blog/models.py:28
+msgid "name"
+msgstr "атауы"
+
+#: apps/blog/models.py:36
+msgid "category"
+msgstr "санат"
+
+#: apps/users/models.py:37
+msgid "Email field is required"
+msgstr "Email өрісі міндетті"
+
+#: apps/users/models.py:42
+msgid "Full name is required"
+msgstr "Толық аты-жөні міндетті"
+
+#: apps/users/models.py:110
+msgid "User email address"
+msgstr "Пайдаланушының email мекенжайы"
+
+#: apps/users/models.py:111
+msgid "Email address"
+msgstr "Email мекенжайы"
+
+#: apps/users/models.py:115
+msgid "User full name"
+msgstr "Пайдаланушының толық аты-жөні"
+
+#: apps/users/models.py:119
+msgid "Password"
+msgstr "Құпия сөз"
+
+#: apps/users/models.py:123
+msgid "Statuc activate"
+msgstr "Белсендіру күйі"   # ескерту: "Statuc" → "Status" болуы керек
+
+#: venv/lib/python3.12/site-packages/django/contrib/messages/apps.py:16
+msgid "Messages"
+msgstr "Хабарламалар"
+
+#: venv/lib/python3.12/site-packages/django/forms/fields.py:92
+msgid "This field is required."
+msgstr "Бұл өріс міндетті."
+
+#: venv/lib/python3.12/site-packages/django/core/validators.py:211
+msgid "Enter a valid email address."
+msgstr "Жарамды email мекенжайын енгізіңіз."
+
+#: venv/lib/python3.12/site-packages/django/core/validators.py:153
+#: venv/lib/python3.12/site-packages/django/forms/fields.py:774
+msgid "Enter a valid URL."
+msgstr "Жарамды URL енгізіңіз."
+
+#: venv/lib/python3.12/site-packages/django/core/validators.py:200
+msgid "Enter a valid integer."
+msgstr "Жарамды бүтін сан енгізіңіз."
+
+#: venv/lib/python3.12/site-packages/django/core/validators.py:473
+#, python-format
+msgid ""
+"Ensure this value has at least %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at least %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] "Бұл мән кемінде %(limit_value)d таңбадан тұруы керек (қазір %(show_value)d таңба)."
+msgstr[1] "Бұл мән кемінде %(limit_value)d таңбадан тұруы керек (қазір %(show_value)d таңба)."
+
+#: venv/lib/python3.12/site-packages/django/core/validators.py:491
+#, python-format
+msgid ""
+"Ensure this value has at most %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at most %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] "Бұл мән ең көбі %(limit_value)d таңбадан аспауы керек (қазір %(show_value)d таңба)."
+msgstr[1] "Бұл мән ең көбі %(limit_value)d таңбадан аспауы керек (қазір %(show_value)d таңба)."
+
+#: venv/lib/python3.12/site-packages/django/core/validators.py:514
+msgid "Enter a number."
+msgstr "Сан енгізіңіз."
+
+#: venv/lib/python3.12/site-packages/django/forms/fields.py:485
+msgid "Enter a valid date."
+msgstr "Жарамды күн енгізіңіз."
+
+#: venv/lib/python3.12/site-packages/django/forms/fields.py:508
+msgid "Enter a valid time."
+msgstr "Жарамды уақыт енгізіңіз."
+
+#: venv/lib/python3.12/site-packages/django/forms/fields.py:535
+msgid "Enter a valid date/time."
+msgstr "Жарамды күн/уақыт енгізіңіз."
+
+#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:135
+msgid "This field cannot be null."
+msgstr "Бұл өріс null болмауы керек."
+
+#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:136
+msgid "This field cannot be blank."
+msgstr "Бұл өріс бос болмауы керек."
+
+#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:137
+#, python-format
+msgid "%(model_name)s with this %(field_label)s already exists."
+msgstr "Осы %(field_label)s бар %(model_name)s бұрыннан бар."
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:7
+msgid "Monday"
+msgstr "Дүйсенбі"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:8
+msgid "Tuesday"
+msgstr "Сейсенбі"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:9
+msgid "Wednesday"
+msgstr "Сәрсенбі"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:10
+msgid "Thursday"
+msgstr "Бейсенбі"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:11
+msgid "Friday"
+msgstr "Жұма"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:12
+msgid "Saturday"
+msgstr "Сенбі"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:13
+msgid "Sunday"
+msgstr "Жексенбі"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:25
+msgid "January"
+msgstr "Қаңтар"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:26
+msgid "February"
+msgstr "Ақпан"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:27
+msgid "March"
+msgstr "Наурыз"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:28
+msgid "April"
+msgstr "Сәуір"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:29
+msgid "May"
+msgstr "Мамыр"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:30
+msgid "June"
+msgstr "Маусым"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:31
+msgid "July"
+msgstr "Шілде"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:32
+msgid "August"
+msgstr "Тамыз"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:33
+msgid "September"
+msgstr "Қыркүйек"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:34
+msgid "October"
+msgstr "Қазан"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:35
+msgid "November"
+msgstr "Қараша"
+
+#: venv/lib/python3.12/site-packages/django/utils/dates.py:36
+msgid "December"
+msgstr "Желтоқсан"
+
+#: venv/lib/python3.12/site-packages/django/views/csrf.py:29
+msgid "Forbidden"
+msgstr "Тыйым салынған"
+
+#: venv/lib/python3.12/site-packages/django/views/csrf.py:30
+msgid "CSRF verification failed. Request aborted."
+msgstr "CSRF тексеруі сәтсіз аяқталды. Сұрау тоқтатылды."
+
+#: venv/lib/python3.12/site-packages/django/forms/widgets.py:528
+msgid "Clear"
+msgstr "Тазалау"
+
+#: venv/lib/python3.12/site-packages/django/forms/widgets.py:529
+msgid "Currently"
+msgstr "Қазіргі"
+
+#: venv/lib/python3.12/site-packages/django/forms/widgets.py:530
+msgid "Change"
+msgstr "Өзгерту"
+
+#: venv/lib/python3.12/site-packages/django/forms/widgets.py:869
+msgid "Unknown"
+msgstr "Белгісіз"
+
+#: venv/lib/python3.12/site-packages/django/forms/widgets.py:870
+msgid "Yes"
+msgstr "Иә"
+
+#: venv/lib/python3.12/site-packages/django/forms/widgets.py:871
+msgid "No"
+msgstr "Жоқ"
+
+# Қосымша қажетті жолдарды осы жерге қоса аласыз
