@@ -1,24 +1,35 @@
-#REST Framework
-from rest_framework.viewsets import ViewSet
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.status import (
-    HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST,
-    HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT,
-    HTTP_429_TOO_MANY_REQUESTS, HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
-)
-from rest_framework.permissions import AllowAny
-
+#Python modules
+from typing import Any
+import json
+from logging import getLogger
 
 #Django modules
 from django.core.cache import cache
 from django.db.models import Q
 
-from logging import getLogger
 
-#Python modules
-from typing import Any
-import json
+#REST Framework
+from rest_framework.viewsets import ViewSet
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.status import (
+    HTTP_200_OK, 
+    HTTP_201_CREATED, 
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND, 
+    HTTP_204_NO_CONTENT,
+    HTTP_429_TOO_MANY_REQUESTS, 
+    HTTP_401_UNAUTHORIZED, 
+    HTTP_403_FORBIDDEN
+)
+from rest_framework.permissions import AllowAny
+
+#drf-spectular
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiResponse,
+)
 
 #Project modules
 from .models import Post, Comment
@@ -30,6 +41,7 @@ from .serializers import (
 from .permissions import (
     IsPublishedOrEdit, IsAddCommentOrReadOnly, IsCreatePostOrReadOnly
 )
+
 
 logger = getLogger(__name__)
 
@@ -90,6 +102,139 @@ def publish_comment_event(
         logger.error(f"Failed to publish comment event: {str(e)}")
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary='List all posts',
+        description='Returns a list of all published posts or user-authored posts',
+        tags=['Posts'],
+        responses={
+            200: OpenApiResponse(
+                response=PostSerializer(many=True),
+                description="List of posts"
+            ),
+            204: OpenApiResponse(
+                description="No posts available"
+            ),
+            401: OpenApiResponse(
+                description="Authentication required"
+            ),
+            403: OpenApiResponse(
+                description="Access denied"
+            ),
+        },
+    ),
+    retrieve=extend_schema(
+        summary='Retrieve a post by slug',
+        description='Returns post detail by slug',
+        tags=['Posts'],
+        responses={
+            200: OpenApiResponse(
+                response=PostSerializer,
+                description="Post details"
+            ),
+            404: OpenApiResponse(
+                description="Post not found"
+            ),
+            401: OpenApiResponse(
+                description="Authentication required"
+            ),
+            403: OpenApiResponse(
+                description="Access denied"
+            ),
+        },
+    ),
+    create=extend_schema(
+        summary='Create a new post',
+        description='Authenticated users can create a new post',
+        tags=['Posts'],
+        request=CreatePostSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=PostSerializer,
+                description="Post created successfully"
+            ),
+            400: OpenApiResponse(
+                description="Validation error"
+            ),
+            401: OpenApiResponse(
+                description="Authentication required"
+            ),
+            429: OpenApiResponse(
+                description="Rate limit exceeded"
+            ),
+        },
+    ),
+    update=extend_schema(
+        summary='Update a post',
+        description='Author can update their own post',
+        tags=['Posts'],
+        request=EditPostSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=PostSerializer,
+                description="Post updated successfully"
+            ),
+            400: OpenApiResponse(
+                description="Validation error"
+            ),
+            401: OpenApiResponse(
+                description="Authentication required"
+            ),
+            403: OpenApiResponse(
+                description="Permission denied"
+            ),
+            404: OpenApiResponse(
+                description="Post not found"
+            ),
+        },
+    ),
+    destroy=extend_schema(
+        summary='Delete a post',
+        description='Author can delete their own post',
+        tags=['Posts'],
+        responses={
+            204: OpenApiResponse(
+                description="Post deleted successfully"
+            ),
+            401: OpenApiResponse(
+                description="Authentication required"
+            ),
+            403: OpenApiResponse(
+                description="Permission denied"
+            ),
+            404: OpenApiResponse(
+                description="Post not found"
+            ),
+        },
+    ),
+    comments=extend_schema(
+        summary='Comments for a post',
+        description='List or create comments for a specific post',
+        tags=['Posts'],
+        request=CreateCommentSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=CommentSerializer(many=True),
+                description="List of comments"
+            ),
+            201: OpenApiResponse(
+                response=CommentSerializer,
+                description="Comment created successfully"
+            ),
+            400: OpenApiResponse(
+                description="Validation error"
+            ),
+            401: OpenApiResponse(
+                description="Authentication required"
+            ),
+            404: OpenApiResponse(
+                description="Post not found"
+            ),
+        },
+    ),
+)
+
+
 class PostViewSet(ViewSet):
     """
     GET    /api/posts/              — published постарды тізімдейді
@@ -142,6 +287,8 @@ class PostViewSet(ViewSet):
             )
 
         cache_key = 'published_posts'
+        lang = getattr(request, "LANGUAGE_CODE","en")
+        cache_key = f"Published_posts_{lang}"
         cached_data = cache.get(cache_key)
         if cached_data:
             logger.info("Cache hit for published posts")
@@ -186,6 +333,9 @@ class PostViewSet(ViewSet):
         if serializer.is_valid():
             post = serializer.save(author=request.user)
             cache.delete('published_posts')
+            from django.conf import settings as django_settings
+            for lang_code in django_settings.SUPPORTED_LANGUAGES:
+                cache.delete(f"published_posts{lang_code}")
             logger.info(f"Post created by {request.user.email}: {post.title}")
             return Response(
                 {
@@ -259,6 +409,9 @@ class PostViewSet(ViewSet):
 
             updated_post = serializer.save()
             cache.delete('published_posts')
+            from django.conf import settings as django_settings
+            for lang_code in django_settings.SUPPORTED_LANGUAGES:
+                cache.delete(f"published_posts{lang_code}")
             logger.info(f"Post updated by {request.user.email}: {updated_post.title}")
 
             return Response(
@@ -293,6 +446,9 @@ class PostViewSet(ViewSet):
         title = post.title
         post.delete()
         cache.delete('published_posts')
+        from django.conf import settings as django_settings
+        for lang_code in django_settings.SUPPORTED_LANGUAGES:
+            cache.delete(f"published_posts{lang_code}")
         logger.info(f"Post deleted by {request.user.email}: {title}")
 
         return Response(
@@ -368,6 +524,64 @@ class PostViewSet(ViewSet):
                 status=HTTP_201_CREATED
             )
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary='List all comments',
+        description='Returns a list of all comments for published posts',
+        tags=['Comments'],
+        responses={
+            200: OpenApiResponse(
+                response=CommentSerializer(many=True),
+                description='List of comments'
+            ),
+            401: OpenApiResponse(description='Authentication required'),
+            403: OpenApiResponse(description='Access denied'),
+        }
+    ),
+    retrieve=extend_schema(
+        summary='Retrieve a comment by ID',
+        description='Returns a comment by its ID',
+        tags=['Comments'],
+        responses={
+            200: OpenApiResponse(
+                response=CommentSerializer,
+                description='Comment details'
+            ),
+            404: OpenApiResponse(description='Comment not found'),
+            401: OpenApiResponse(description='Authentication required'),
+            403: OpenApiResponse(description='Access denied'),
+        }
+    ),
+    partial_update=extend_schema(
+        summary='Update a comment',
+        description='Authenticated users can update their own comments',
+        tags=['Comments'],
+        request=EditCommentSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=CommentSerializer,
+                description='Comment updated successfully'
+            ),
+            400: OpenApiResponse(description='Validation error'),
+            401: OpenApiResponse(description='Authentication required'),
+            403: OpenApiResponse(description='Permission denied'),
+            404: OpenApiResponse(description='Comment not found'),
+        }
+    ),
+    destroy=extend_schema(
+        summary='Delete a comment',
+        description='Authenticated users can delete their own comments',
+        tags=['Comments'],
+        responses={
+            204: OpenApiResponse(description='Comment deleted successfully'),
+            401: OpenApiResponse(description='Authentication required'),
+            403: OpenApiResponse(description='Permission denied'),
+            404: OpenApiResponse(description='Comment not found'),
+        }
+    ),
+)
 
 
 class CommentViewSet(ViewSet):

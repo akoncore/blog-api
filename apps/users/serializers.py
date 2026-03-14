@@ -1,8 +1,16 @@
-from rest_framework.serializers import (
-    Serializer, ModelSerializer, CharField, ValidationError, EmailField
-)
+import pytz
+
 from django.contrib.auth import authenticate
-from .models import CustomUser
+from django.conf import settings
+
+from rest_framework.serializers import (
+    Serializer, ModelSerializer, CharField, ValidationError, EmailField,ChoiceField
+)
+
+from .models import CustomUser 
+
+
+SUPPORTED_LANGUAGE_CODES = [code for code, _ in settings.LANGUAGES]
 
 
 class RegisterSerializer(ModelSerializer):
@@ -106,3 +114,21 @@ class ChangePasswordSerializer(Serializer):
         user.set_password(self.validated_data['new_password'])
         user.save()
         return user
+    
+class LanguagesSerializer(Serializer):
+    preferred_language = ChoiceField(
+        choices=SUPPORTED_LANGUAGE_CODES
+    )
+
+class TimezoneSerializer(Serializer):
+    timezone = CharField(
+        max_length = 100
+    )
+
+    def validate_timezone(self,value):
+        if value not in pytz.all_timezones:
+            raise ValidationError(
+                f"'{value}' is not a valid IANA timezone. "
+                f"Examples: UTC, Asia/Almaty, Europe/Moscow, America/New_York"
+            )
+        return value

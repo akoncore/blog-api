@@ -30,6 +30,7 @@ from drf_spectacular.views import (
 )
 
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include("apps.users.urls")),
@@ -40,9 +41,9 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path('api/docs/', SpectacularSwaggerView.as_view(),name='swagger'),
+    path('api/redoc/',SpectacularRedocView.as_view(),name='redoc'),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema')
     
 ]
 

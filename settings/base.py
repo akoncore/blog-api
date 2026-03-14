@@ -34,10 +34,14 @@ DJANGO_AND_THIRD_PARTY_APPS = [
     'debug_toolbar',
     'django_extensions',
     'drf_spectacular',
+    'parler',
+    'httpx',
+    'adrf'
 ]
 PROJECT_APPS = [
     'apps.blog',
-    'apps.users'
+    'apps.users',
+    'apps.core',
 ]
 INSTALLED_APPS = DJANGO_AND_THIRD_PARTY_APPS + PROJECT_APPS
 
@@ -48,18 +52,22 @@ INSTALLED_APPS = DJANGO_AND_THIRD_PARTY_APPS + PROJECT_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    "apps.core.middleware.LanguageAndTimezoneMiddleware",
+
 
 ]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
+        'DIRS':[os.path.join(BASE_DIR, "templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -293,14 +301,44 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.profiling.ProfilingPanel',
 ]
 
+#Email
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 #-----------------------------
 #INTERNATIONALIZATION
 #
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+USE_L10N = True
 
+
+SUPPORTED_LANGUAGES = [
+    "en","kz","ru"
+]
+
+LANGUAGES = [
+    ("en","English"),
+    ("kk","Kazakh"),
+    ("ru","Russian")
+]
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
+
+PARLER_LANGUAGES = {
+    None: (
+        {'code': 'en',},
+        {'code': 'ru',},
+        {'code': 'kk'}
+    ),
+    'default': {
+        'fallback': 'en',             # defaults to PARLER_DEFAULT_LANGUAGE_CODE
+        'hide_untranslated': False,   # the default; let .active_translations() return fallbacks too.
+    }
+}
 
 #-----------------------------
 #STATIC

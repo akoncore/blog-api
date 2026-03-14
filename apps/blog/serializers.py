@@ -1,4 +1,5 @@
 from typing import Dict, Any
+import pytz
 from django.utils.text import slugify
 from rest_framework.serializers import (
     ModelSerializer, ValidationError,
@@ -8,10 +9,26 @@ from .models import Post, Comment, Tag, Category
 
 
 class CategorySerializer(ModelSerializer):
+    """
+    Base Category Serializer
+    """
+
+    name = SerializerMethodField()
+
     class Meta:
         model = Category
         fields = ['id', 'name', 'slug']
         read_only_fields = ['slug']
+
+    def get_name(self,obj):
+
+        request = self.context.get("request")
+
+        if request:
+            lang = getattr(request, "LANGUAGE_CODE", "en")
+            return obj.safe_translation_getter("name", language_code = lang, any_language = True)
+        return obj.safe_translation_getter("name",any_language = True)
+    
 
     def create(self, validated_data: Dict[str, Any]) -> Category:
         validated_data['slug'] = slugify(validated_data['name'])
@@ -38,11 +55,13 @@ class PostSerializer(ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     is_published = SerializerMethodField(read_only=True)
 
+    created_at = SerializerMethodField()
+
     class Meta:
         model = Post
         fields = [
             'id', 'title', 'slug', 'body', 'author_info',
-            'category', 'tags', 'status', 'created_at', 'updated_at', 'is_published',
+            'category', 'tags', 'status', 'created_at','is_published',
         ]
         read_only_fields = ['id', 'slug', 'author_info', 'created_at', 'updated_at']
 
@@ -55,7 +74,47 @@ class PostSerializer(ModelSerializer):
 
     def get_is_published(self, obj: Post) -> bool:
         return obj.status == Post.Status.PUBLISHED
+    
+    def get_created_at(self,obj):
+        request = self.context.get("request")
+        return self._format_date(obj.created_at, request)
 
+    def _format_date(self, dt, request):
+        if dt is None:
+            return None
+
+        if not request or not request.user.is_authenticated:
+            return dt.strftime("%H:%M %d-%m-%Y UTC")
+        
+        user_tz_name = getattr(request.user , "timezone", "UTC")
+        try:
+            user_tz = pytz.timezone(user_tz_name)
+        except pytz.exceptions.UnknownTimeZoneError:
+            user_tz = pytz.utc
+
+        local_dt = dt.astimezone(user_tz)
+
+        lang = getattr(request, "LANGUAGE_CODE","en")
+
+        if lang == "ru":
+            months_ru = [
+                "января", "февраля", "марта", "апреля", "мая", "июня",
+                "июля", "августа", "сентября", "октября", "ноября", "декабря"
+            ]
+            month = months_ru[local_dt.month - 1]
+            return f"{local_dt.strftime('%H:%M')} {local_dt.day} {month} {local_dt.year}"
+        
+        elif lang == "kz":
+            months_kk = [
+                "қаңтар", "ақпан", "наурыз", "сәуір", "мамыр", "маусым",
+                "шілде", "тамыз", "қыркүйек", "қазан", "қараша", "желтоқсан"
+            ]
+            month = months_kk[local_dt.month - 1]
+            return f"{local_dt.strftime('%H:%M')} {local_dt.day} {month} {local_dt.year}"
+        
+        return local_dt.strftime('%H:%M %d-%m-%Y')
+    
+        
 
 class CreatePostSerializer(ModelSerializer):
     category = PrimaryKeyRelatedField(

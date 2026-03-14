@@ -16,7 +16,7 @@ from django.contrib.auth.models import (
     PermissionsMixin
 )
 from django.core.exceptions import ValidationError
-
+from django.utils.translation import gettext_lazy as _
 
 class CustomUserManager(BaseUserManager):
     """
@@ -34,12 +34,12 @@ class CustomUserManager(BaseUserManager):
         """
         if not email:
             raise ValidationError(
-                message="Email field is required",
+                message=_("Email field is required"),
                 code="email_empty"
             )
         if not full_name:
             raise ValidationError(
-                message="Full name is required",
+                message=_("Full name is required"),
                 code="full_name_empty"
             )
         
@@ -99,24 +99,28 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
     """
     Model CustomUser
     """
+    PREFERRED_LANGUAGES = [
+        "en","ru","kz"
+    ]
+
     email = EmailField(
         unique=True,
         max_length=100,
         db_index=True,
-        help_text="User email address",
-        verbose_name="Email address"
+        help_text=_("User email address"),
+        verbose_name=_("Email address")
     )
     full_name = CharField(
         max_length=100,
-        verbose_name="User full name"
+        verbose_name=_("User full name")
     )
     password = CharField(
         max_length=200,
-        verbose_name="Password"
+        verbose_name=_("Password")
     )
     is_active = BooleanField(
         default=True,
-        verbose_name="Statuc activate"
+        verbose_name=_("Statuc activate")
     )
     is_staff = BooleanField(
         default=False,
@@ -128,6 +132,17 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
     avatar = ImageField(
         blank=True,
         null=True,
+    )
+    preferred_language = CharField(
+        max_length=10,
+        choices=[(lang,lang) for lang in PREFERRED_LANGUAGES],
+        default="en",
+        verbose_name="Preferred languages",
+        help_text="User language"
+    )
+    timezone = CharField(
+        max_length=100,
+        default="UTC"
     )
 
     REQUIRED_FIELDS = ["full_name"]
