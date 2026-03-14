@@ -17,7 +17,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from .serializers import (
     RegisterSerializer, UserProfileSerializer, LoginSerializer,
-    UpdateUserProfileSerializer, ChangePasswordSerializer
+    UpdateUserProfileSerializer, ChangePasswordSerializer,
+    LanguagesSerializer,TimezoneSerializer,
+    ValidationError
 )
 from .models import CustomUser
 from .permissions import IsOwnerOrReadOnly
@@ -104,6 +106,27 @@ class AuthViewSet(ViewSet):
 
         logger.warning('Login failed for email: %s, errors: %s', email, serializer.errors)
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['patch'], url_name='language')
+    def set_language(self,request)->Response:
+        if not request.user.is_authenticated():
+            raise ValidationError({
+                "error":"User is not autenticated"
+            }
+        )
+
+        serializer = LanguagesSerializer(data = request.data)
+
+        if serializer.is_valid():
+            request.user.preferred_language = serializer.validated_data['preferred_language']
+            request.user.save(update_fields = ['preferred_language'])
+            logger.info('')
+            return Response(
+                {
+                    "language":request.user.preferred_language
+                }
+            )
+
 
     @action(detail=False, methods=['post'], url_path='logout')
     def logout(self, request) -> Response:

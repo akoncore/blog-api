@@ -99,6 +99,10 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
     """
     Model CustomUser
     """
+    PREFERRED_LANGUAGES = [
+        "en","ru","kz"
+    ]
+
     email = EmailField(
         unique=True,
         max_length=100,
@@ -128,6 +132,17 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
     avatar = ImageField(
         blank=True,
         null=True,
+    )
+    preferred_language = CharField(
+        max_length=10,
+        choices=[(lang,lang) for lang in PREFERRED_LANGUAGES],
+        default="en",
+        verbose_name="Preferred languages",
+        help_text="User language"
+    )
+    timezone = CharField(
+        max_length=100,
+        default="UTC"
     )
 
     REQUIRED_FIELDS = ["full_name"]
