@@ -25,7 +25,8 @@ class CustomUserManager(BaseUserManager):
     def __obtain_user_instance(
             self,
             email:str,
-            full_name:str,
+            first_name:str,
+            last_name:str,
             password:str,
             **kwargs:dict[str,Any],
     )-> 'CustomUser':
@@ -37,7 +38,7 @@ class CustomUserManager(BaseUserManager):
                 message=_("Email field is required"),
                 code="email_empty"
             )
-        if not full_name:
+        if not first_name and last_name:
             raise ValidationError(
                 message=_("Full name is required"),
                 code="full_name_empty"
@@ -45,7 +46,8 @@ class CustomUserManager(BaseUserManager):
         
         new_user:'CustomUser' = self.model(
             email = self.normalize_email(email),
-            full_name = full_name,
+            first_name = first_name,
+            last_name = last_name,
             password = password,
             **kwargs,
         )
@@ -54,7 +56,8 @@ class CustomUserManager(BaseUserManager):
     def create_user(
         self,
         email:str,
-        full_name:str,
+        first_name:str,
+        last_name:str,
         password:str,
         **kwargs:dict[str,Any],
     )->'CustomUser':
@@ -63,7 +66,8 @@ class CustomUserManager(BaseUserManager):
         """
         new_user: 'CustomUser' = self.__obtain_user_instance(
             email=email,
-            full_name=full_name,
+            first_name = first_name,
+            last_name = last_name,
             password=password,
             **kwargs,
         )
@@ -74,7 +78,8 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(
             self,
             email:str,
-            full_name:str,
+            first_name:str,
+            last_name:str,
             password:str,
             **kwargs:dict[str,Any],
     )-> 'CustomUser':
@@ -83,7 +88,8 @@ class CustomUserManager(BaseUserManager):
         """
         new_user: 'CustomUser' = self.__obtain_user_instance(
             email=email,
-            full_name=full_name,
+            first_name = first_name,
+            last_name = last_name,
             password=password,
             is_active=True,
             is_staff=True,
@@ -110,9 +116,13 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
         help_text=_("User email address"),
         verbose_name=_("Email address")
     )
-    full_name = CharField(
+    first_name = CharField(
         max_length=100,
         verbose_name=_("User full name")
+    )
+    last_name = CharField(
+        max_length=150,
+        verbose_name=_("User_last_name")
     )
     password = CharField(
         max_length=200,
@@ -145,7 +155,7 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
         default="UTC"
     )
 
-    REQUIRED_FIELDS = ["full_name"]
+    REQUIRED_FIELDS = ["first_name","last_name"]
     USERNAME_FIELD = "email"
     objects = CustomUserManager()
 
@@ -154,4 +164,4 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
         Meta options for CustomUser model
         """
         verbose_name = "Custom User"
-        ordering = ["full_name"]
+        ordering = ["first_name"]

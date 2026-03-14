@@ -19,7 +19,7 @@ class RegisterSerializer(ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'full_name', 'password', 'password1']
+        fields = ['email', 'first_name','last_name', 'password', 'password1']
 
     def validate_email(self, value: str) -> str:
         email = value.lower().strip()
@@ -27,12 +27,12 @@ class RegisterSerializer(ModelSerializer):
             raise ValidationError({'error': 'There is not email'})
         return email
 
-    def validate_full_name(self, value: str) -> str:
+    def validate_first_name(self, value: str) -> str:
         
-        full_name = value.strip()
-        if not full_name or len(full_name) < 2:
+        first_name = value.strip()
+        if not first_name or len(first_name) < 2:
             raise ValidationError({'error': 'Full name must be at least 2 characters'})
-        return full_name.title()
+        return first_name.title()
 
     def validate(self, attrs: dict) -> dict:
         if attrs.get('password') != attrs.get('password1'):
@@ -73,13 +73,13 @@ class LoginSerializer(Serializer):
 class UserProfileSerializer(ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'full_name', 'is_active']
+        fields = ['id', 'email', 'first_name','last_name', 'is_active']
 
 
 class UpdateUserProfileSerializer(ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['full_name']
+        fields = ['first_name','last_name']
 
 
 class ChangePasswordSerializer(Serializer):

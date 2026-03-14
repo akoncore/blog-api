@@ -17,6 +17,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
+# ── models ────────────────────────────────────────────────────────────────────
+
 #: apps/blog/models.py:28
 msgid "name"
 msgstr "название"
@@ -51,7 +53,167 @@ msgstr "Пароль"
 
 #: apps/users/models.py:123
 msgid "Statuc activate"
-msgstr "Статус активации"  # было "Statuc" — исправлено на "Status"
+msgstr "Статус активации"
+
+# ── auth messages ─────────────────────────────────────────────────────────────
+
+#: apps/users/views.py
+msgid "User registered successfully"
+msgstr "Пользователь успешно зарегистрирован"
+
+#: apps/users/views.py
+msgid "User logged in successfully"
+msgstr "Пользователь успешно вошёл в систему"
+
+#: apps/users/views.py
+msgid "User logged out successfully"
+msgstr "Пользователь успешно вышел из системы"
+
+#: apps/users/views.py
+msgid "User deleted successfully"
+msgstr "Пользователь успешно удалён"
+
+#: apps/users/views.py
+msgid "Profile updated successfully"
+msgstr "Профиль успешно обновлён"
+
+#: apps/users/views.py
+msgid "Password changed successfully"
+msgstr "Пароль успешно изменён"
+
+#: apps/users/views.py
+msgid "Refresh token required"
+msgstr "Требуется токен обновления"
+
+#: apps/users/views.py
+msgid "Logout failed"
+msgstr "Ошибка при выходе из системы"
+
+#: apps/users/views.py
+msgid "Token refresh failed"
+msgstr "Не удалось обновить токен"
+
+#: apps/users/views.py
+msgid "Authentication required"
+msgstr "Требуется аутентификация"
+
+#: apps/users/views.py
+msgid "User not found"
+msgstr "Пользователь не найден"
+
+#: apps/users/views.py
+msgid "You do not have permission to delete this account"
+msgstr "У вас нет прав для удаления этого аккаунта"
+
+#: apps/users/views.py
+msgid "You do not have permission to update this profile"
+msgstr "У вас нет прав для обновления этого профиля"
+
+#: apps/users/views.py
+msgid "You do not have permission to change this password"
+msgstr "У вас нет прав для изменения этого пароля"
+
+#: apps/users/views.py
+msgid "Too many requests. Please try again later."
+msgstr "Слишком много запросов. Пожалуйста, попробуйте позже."
+
+#: apps/users/views.py
+msgid "Invalid language. Choose from: en, ru, kk"
+msgstr "Неверный язык. Выберите из: en, ru, kk"
+
+#: apps/users/views.py
+msgid "Language updated successfully."
+msgstr "Язык успешно обновлён."
+
+#: apps/users/views.py
+msgid "Timezone updated successfully."
+msgstr "Часовой пояс успешно обновлён."
+
+#: apps/users/views.py
+msgid "Invalid timezone"
+msgstr "Неверный часовой пояс"
+
+# ── blog/post messages ────────────────────────────────────────────────────────
+
+#: apps/blog/views.py
+msgid "Post created successfully"
+msgstr "Публикация успешно создана"
+
+#: apps/blog/views.py
+msgid "Post updated successfully"
+msgstr "Публикация успешно обновлена"
+
+#: apps/blog/views.py
+msgid "Post deleted successfully"
+msgstr "Публикация успешно удалена"
+
+#: apps/blog/views.py
+msgid "Post not found"
+msgstr "Публикация не найдена"
+
+#: apps/blog/views.py
+msgid "Authentication required to create a post"
+msgstr "Для создания публикации необходима аутентификация"
+
+#: apps/blog/views.py
+msgid "Authentication required to update a post"
+msgstr "Для обновления публикации необходима аутентификация"
+
+#: apps/blog/views.py
+msgid "Authentication required to delete a post"
+msgstr "Для удаления публикации необходима аутентификация"
+
+#: apps/blog/views.py
+msgid "You do not have permission to edit this post"
+msgstr "У вас нет прав для редактирования этой публикации"
+
+#: apps/blog/views.py
+msgid "You do not have permission to delete this post"
+msgstr "У вас нет прав для удаления этой публикации"
+
+# ── blog/comment messages ─────────────────────────────────────────────────────
+
+#: apps/blog/views.py
+msgid "Comment added successfully"
+msgstr "Комментарий успешно добавлен"
+
+#: apps/blog/views.py
+msgid "Comment updated successfully"
+msgstr "Комментарий успешно обновлён"
+
+#: apps/blog/views.py
+msgid "Comment deleted successfully"
+msgstr "Комментарий успешно удалён"
+
+#: apps/blog/views.py
+msgid "Comment not found"
+msgstr "Комментарий не найден"
+
+#: apps/blog/views.py
+msgid "Authentication required to add a comment"
+msgstr "Для добавления комментария необходима аутентификация"
+
+#: apps/blog/views.py
+msgid "Authentication required to update a comment"
+msgstr "Для обновления комментария необходима аутентификация"
+
+#: apps/blog/views.py
+msgid "Authentication required to delete a comment"
+msgstr "Для удаления комментария необходима аутентификация"
+
+#: apps/blog/views.py
+msgid "You do not have permission to edit this comment"
+msgstr "У вас нет прав для редактирования этого комментария"
+
+#: apps/blog/views.py
+msgid "You do not have permission to delete this comment"
+msgstr "У вас нет прав для удаления этого комментария"
+
+#: apps/blog/views.py
+msgid "Rate limit exceeded. Please try again later."
+msgstr "Превышен лимит запросов. Пожалуйста, попробуйте позже."
+
+# ── django built-ins ──────────────────────────────────────────────────────────
 
 #: venv/lib/python3.12/site-packages/django/contrib/messages/apps.py:16
 msgid "Messages"

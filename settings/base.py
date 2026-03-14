@@ -315,7 +315,7 @@ USE_L10N = True
 
 
 SUPPORTED_LANGUAGES = [
-    "en","kz","ru"
+    "en","kk","ru"
 ]
 
 LANGUAGES = [

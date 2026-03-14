@@ -12,11 +12,12 @@ from .models import (
 class CustomUserAdmin(ModelAdmin):
     list_display = (
         'email',
-        'full_name',
+        'first_name',
+        'last_name',
         'is_staff',
         'is_active',
     )
     list_display_links = ('email',)
-    search_fields = ('email','full_name',)
+    search_fields = ('email','first_name',)
     ordering = ('email',)
     

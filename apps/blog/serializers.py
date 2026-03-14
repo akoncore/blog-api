@@ -69,7 +69,7 @@ class PostSerializer(ModelSerializer):
         return {
             'id': obj.author.id,
             'email': obj.author.email,
-            'full_name': obj.author.full_name
+            'first_name': obj.author.first_name
         }
 
     def get_is_published(self, obj: Post) -> bool:
@@ -203,7 +203,7 @@ class CommentSerializer(ModelSerializer):
         return {
             'id': obj.author.id,
             'email': obj.author.email,
-            'full_name': obj.author.full_name
+            'first_name': obj.author.first_name
         }
 
     def get_post_info(self, obj: Comment) -> Dict[str, Any]:
