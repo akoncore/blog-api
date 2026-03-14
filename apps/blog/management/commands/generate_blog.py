@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 
-from blog.models import Category, Tag, Post, Comment  # adjust app label if needed
+from apps.blog.models import Category, Tag, Post, Comment  # adjust app label if needed
 
 User = get_user_model()
 
