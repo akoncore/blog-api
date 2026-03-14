@@ -17,6 +17,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+# ── models ────────────────────────────────────────────────────────────────────
+
 #: apps/blog/models.py:28
 msgid "name"
 msgstr "атауы"
@@ -51,7 +53,167 @@ msgstr "Құпия сөз"
 
 #: apps/users/models.py:123
 msgid "Statuc activate"
-msgstr "Белсендіру күйі"   # ескерту: "Statuc" → "Status" болуы керек
+msgstr "Белсендіру күйі"
+
+# ── auth messages ─────────────────────────────────────────────────────────────
+
+#: apps/users/views.py
+msgid "User registered successfully"
+msgstr "Пайдаланушы сәтті тіркелді"
+
+#: apps/users/views.py
+msgid "User logged in successfully"
+msgstr "Пайдаланушы жүйеге сәтті кірді"
+
+#: apps/users/views.py
+msgid "User logged out successfully"
+msgstr "Пайдаланушы жүйеден сәтті шықты"
+
+#: apps/users/views.py
+msgid "User deleted successfully"
+msgstr "Пайдаланушы сәтті жойылды"
+
+#: apps/users/views.py
+msgid "Profile updated successfully"
+msgstr "Профиль сәтті жаңартылды"
+
+#: apps/users/views.py
+msgid "Password changed successfully"
+msgstr "Құпия сөз сәтті өзгертілді"
+
+#: apps/users/views.py
+msgid "Refresh token required"
+msgstr "Жаңарту токені қажет"
+
+#: apps/users/views.py
+msgid "Logout failed"
+msgstr "Жүйеден шығу сәтсіз аяқталды"
+
+#: apps/users/views.py
+msgid "Token refresh failed"
+msgstr "Токенді жаңарту сәтсіз аяқталды"
+
+#: apps/users/views.py
+msgid "Authentication required"
+msgstr "Аутентификация қажет"
+
+#: apps/users/views.py
+msgid "User not found"
+msgstr "Пайдаланушы табылмады"
+
+#: apps/users/views.py
+msgid "You do not have permission to delete this account"
+msgstr "Сізде бұл аккаунтты жоюға рұқсат жоқ"
+
+#: apps/users/views.py
+msgid "You do not have permission to update this profile"
+msgstr "Сізде бұл профильді жаңартуға рұқсат жоқ"
+
+#: apps/users/views.py
+msgid "You do not have permission to change this password"
+msgstr "Сізде бұл құпия сөзді өзгертуге рұқсат жоқ"
+
+#: apps/users/views.py
+msgid "Too many requests. Please try again later."
+msgstr "Сұраулар саны асып кетті. Кейінірек қайталап көріңіз."
+
+#: apps/users/views.py
+msgid "Invalid language. Choose from: en, ru, kk"
+msgstr "Қате тіл. Таңдаңыз: en, ru, kk"
+
+#: apps/users/views.py
+msgid "Language updated successfully."
+msgstr "Тіл сәтті жаңартылды."
+
+#: apps/users/views.py
+msgid "Timezone updated successfully."
+msgstr "Уақыт белдеуі сәтті жаңартылды."
+
+#: apps/users/views.py
+msgid "Invalid timezone"
+msgstr "Қате уақыт белдеуі"
+
+# ── blog/post messages ────────────────────────────────────────────────────────
+
+#: apps/blog/views.py
+msgid "Post created successfully"
+msgstr "Пост сәтті жасалды"
+
+#: apps/blog/views.py
+msgid "Post updated successfully"
+msgstr "Пост сәтті жаңартылды"
+
+#: apps/blog/views.py
+msgid "Post deleted successfully"
+msgstr "Пост сәтті жойылды"
+
+#: apps/blog/views.py
+msgid "Post not found"
+msgstr "Пост табылмады"
+
+#: apps/blog/views.py
+msgid "Authentication required to create a post"
+msgstr "Пост жасау үшін аутентификация қажет"
+
+#: apps/blog/views.py
+msgid "Authentication required to update a post"
+msgstr "Постты жаңарту үшін аутентификация қажет"
+
+#: apps/blog/views.py
+msgid "Authentication required to delete a post"
+msgstr "Постты жою үшін аутентификация қажет"
+
+#: apps/blog/views.py
+msgid "You do not have permission to edit this post"
+msgstr "Сізде бұл постты өңдеуге рұқсат жоқ"
+
+#: apps/blog/views.py
+msgid "You do not have permission to delete this post"
+msgstr "Сізде бұл постты жоюға рұқсат жоқ"
+
+# ── blog/comment messages ─────────────────────────────────────────────────────
+
+#: apps/blog/views.py
+msgid "Comment added successfully"
+msgstr "Пікір сәтті қосылды"
+
+#: apps/blog/views.py
+msgid "Comment updated successfully"
+msgstr "Пікір сәтті жаңартылды"
+
+#: apps/blog/views.py
+msgid "Comment deleted successfully"
+msgstr "Пікір сәтті жойылды"
+
+#: apps/blog/views.py
+msgid "Comment not found"
+msgstr "Пікір табылмады"
+
+#: apps/blog/views.py
+msgid "Authentication required to add a comment"
+msgstr "Пікір қосу үшін аутентификация қажет"
+
+#: apps/blog/views.py
+msgid "Authentication required to update a comment"
+msgstr "Пікірді жаңарту үшін аутентификация қажет"
+
+#: apps/blog/views.py
+msgid "Authentication required to delete a comment"
+msgstr "Пікірді жою үшін аутентификация қажет"
+
+#: apps/blog/views.py
+msgid "You do not have permission to edit this comment"
+msgstr "Сізде бұл пікірді өңдеуге рұқсат жоқ"
+
+#: apps/blog/views.py
+msgid "You do not have permission to delete this comment"
+msgstr "Сізде бұл пікірді жоюға рұқсат жоқ"
+
+#: apps/blog/views.py
+msgid "Rate limit exceeded. Please try again later."
+msgstr "Сұраулар саны асып кетті. Кейінірек қайталап көріңіз."
+
+# ── django built-ins ──────────────────────────────────────────────────────────
 
 #: venv/lib/python3.12/site-packages/django/contrib/messages/apps.py:16
 msgid "Messages"
@@ -232,5 +394,3 @@ msgstr "Иә"
 #: venv/lib/python3.12/site-packages/django/forms/widgets.py:871
 msgid "No"
 msgstr "Жоқ"
-
-# Қосымша қажетті жолдарды осы жерге қоса аласыз

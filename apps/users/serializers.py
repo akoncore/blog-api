@@ -19,7 +19,7 @@ class RegisterSerializer(ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'full_name', 'password', 'password1']
+        fields = ['email', 'first_name','last_name', 'password', 'password1']
 
     def validate_email(self, value: str) -> str:
         email = value.lower().strip()
@@ -73,13 +73,13 @@ class LoginSerializer(Serializer):
 class UserProfileSerializer(ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'full_name', 'is_active']
+        fields = ['id', 'email', 'first_name','last_name', 'is_active']
 
 
 class UpdateUserProfileSerializer(ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['full_name']
+        fields = ['first_name','last_name']
 
 
 class ChangePasswordSerializer(Serializer):

@@ -6,7 +6,7 @@ from logging import getLogger
 #Django modules
 from django.core.cache import cache
 from django.db.models import Q
-
+from django.utils.translation import gettext as _
 
 #REST Framework
 from rest_framework.viewsets import ViewSet
@@ -70,7 +70,7 @@ def rate_limit_response(
         f"from IP: {request.META.get('REMOTE_ADDR')}"
     )
     return Response(
-        {'detail': 'Rate limit exceeded. Please try again later.'},
+        {'detail': _('Rate limit exceeded. Please try again later.')},
         status=HTTP_429_TOO_MANY_REQUESTS
     )
 
@@ -263,7 +263,7 @@ class PostViewSet(ViewSet):
     def list(
         self, 
         request
-) -> Response:
+    ) -> Response:
         
         user_info = (
             f"{request.user.id} - {request.user.email}"
@@ -277,7 +277,7 @@ class PostViewSet(ViewSet):
                 Q(status=Post.Status.PUBLISHED) | Q(author=request.user)
             ).select_related('author', 'category').prefetch_related('tags')
 
-            serializer = PostSerializer(queryset, many=True)
+            serializer = PostSerializer(queryset, many=True, context={'request': request})
             return Response(
                 {
                     'posts': serializer.data, 
@@ -286,8 +286,7 @@ class PostViewSet(ViewSet):
                 status=HTTP_200_OK
             )
 
-        cache_key = 'published_posts'
-        lang = getattr(request, "LANGUAGE_CODE","en")
+        lang = getattr(request, "LANGUAGE_CODE", "en")
         cache_key = f"Published_posts_{lang}"
         cached_data = cache.get(cache_key)
         if cached_data:
@@ -300,7 +299,7 @@ class PostViewSet(ViewSet):
         queryset = Post.objects.filter(
             status=Post.Status.PUBLISHED
         ).select_related('author', 'category').prefetch_related('tags')
-        serializer = PostSerializer(queryset, many=True)
+        serializer = PostSerializer(queryset, many=True, context={'request': request})
         response_data = serializer.data
         cache.set(cache_key, response_data, timeout=60)
         logger.info("Published posts cached for 60 seconds")
@@ -322,7 +321,7 @@ class PostViewSet(ViewSet):
 
         if not request.user.is_authenticated:
             return Response(
-                {'error': 'Authentication required to create a post'},
+                {'error': _('Authentication required to create a post')},
                 status=HTTP_401_UNAUTHORIZED
             )
 
@@ -335,12 +334,12 @@ class PostViewSet(ViewSet):
             cache.delete('published_posts')
             from django.conf import settings as django_settings
             for lang_code in django_settings.SUPPORTED_LANGUAGES:
-                cache.delete(f"published_posts{lang_code}")
+                cache.delete(f"Published_posts_{lang_code}")
             logger.info(f"Post created by {request.user.email}: {post.title}")
             return Response(
                 {
-                    'message': 'Post created successfully', 
-                    'post': PostSerializer(post).data
+                    'message': _('Post created successfully'), 
+                    'post': PostSerializer(post, context={'request': request}).data
                 },
                 status=HTTP_201_CREATED
             )
@@ -359,19 +358,18 @@ class PostViewSet(ViewSet):
 
         except Post.DoesNotExist:
             return Response(
-                {'error': 'Post not found'}, 
+                {'error': _('Post not found')}, 
                 status=HTTP_404_NOT_FOUND
             )
 
-        
         if post.status == Post.Status.DRAFT:
             if not request.user.is_authenticated or post.author != request.user:
                 return Response(
-                    {'error': 'Post not found'},
+                    {'error': _('Post not found')},
                     status=HTTP_404_NOT_FOUND
                 )
 
-        serializer = PostSerializer(post)
+        serializer = PostSerializer(post, context={'request': request})
         return Response(
             serializer.data, 
             status=HTTP_200_OK
@@ -385,20 +383,20 @@ class PostViewSet(ViewSet):
         
         if not request.user.is_authenticated:
             return Response(
-                {'error': 'Authentication required to update a post'},
+                {'error': _('Authentication required to update a post')},
                 status=HTTP_401_UNAUTHORIZED
             )
         try:
             post = Post.objects.get(slug=slug)
         except Post.DoesNotExist:
             return Response(
-                {'error': 'Post not found'}, 
+                {'error': _('Post not found')}, 
                 status=HTTP_404_NOT_FOUND
             )
 
         if post.author != request.user:
             return Response(
-                {'error': 'You do not have permission to edit this post'},
+                {'error': _('You do not have permission to edit this post')},
                 status=HTTP_403_FORBIDDEN
             )
 
@@ -406,16 +404,18 @@ class PostViewSet(ViewSet):
             post, data=request.data, partial=True, context={'request': request}
         )
         if serializer.is_valid():
-
             updated_post = serializer.save()
             cache.delete('published_posts')
             from django.conf import settings as django_settings
             for lang_code in django_settings.SUPPORTED_LANGUAGES:
-                cache.delete(f"published_posts{lang_code}")
+                cache.delete(f"Published_posts_{lang_code}")
             logger.info(f"Post updated by {request.user.email}: {updated_post.title}")
 
             return Response(
-                {'message': 'Post updated successfully', 'post': PostSerializer(updated_post).data},
+                {
+                    'message': _('Post updated successfully'),
+                    'post': PostSerializer(updated_post, context={'request': request}).data
+                },
                 status=HTTP_200_OK
             )
         
@@ -429,17 +429,17 @@ class PostViewSet(ViewSet):
         
         if not request.user.is_authenticated:
             return Response(
-                {'error': 'Authentication required to delete a post'},
+                {'error': _('Authentication required to delete a post')},
                 status=HTTP_401_UNAUTHORIZED
             )
         try:
             post = Post.objects.get(slug=slug)
         except Post.DoesNotExist:
-            return Response({'error': 'Post not found'}, status=HTTP_404_NOT_FOUND)
+            return Response({'error': _('Post not found')}, status=HTTP_404_NOT_FOUND)
 
         if post.author != request.user:
             return Response(
-                {'error': 'You do not have permission to delete this post'},
+                {'error': _('You do not have permission to delete this post')},
                 status=HTTP_403_FORBIDDEN
             )
 
@@ -448,11 +448,11 @@ class PostViewSet(ViewSet):
         cache.delete('published_posts')
         from django.conf import settings as django_settings
         for lang_code in django_settings.SUPPORTED_LANGUAGES:
-            cache.delete(f"published_posts{lang_code}")
+            cache.delete(f"Published_posts_{lang_code}")
         logger.info(f"Post deleted by {request.user.email}: {title}")
 
         return Response(
-            {'message': 'Post deleted successfully'}, 
+            {'message': _('Post deleted successfully')}, 
             status=HTTP_204_NO_CONTENT
         )
 
@@ -470,14 +470,14 @@ class PostViewSet(ViewSet):
             post = Post.objects.get(slug=slug)
         except Post.DoesNotExist:
             return Response(
-                {'error': 'Post not found'}, 
+                {'error': _('Post not found')}, 
                 status=HTTP_404_NOT_FOUND
             )
 
         if post.status == Post.Status.DRAFT:
             if not request.user.is_authenticated or post.author != request.user:
                 return Response(
-                    {'error': 'Post not found'},
+                    {'error': _('Post not found')},
                     status=HTTP_404_NOT_FOUND
                 )
 
@@ -489,38 +489,27 @@ class PostViewSet(ViewSet):
                 status=HTTP_200_OK
             )
 
-        elif request.method == 'POST':
-            if not request.user.is_authenticated:
-                logger.warning("Unauthorized comment creation attempt by anonymous user")
-                return Response(
-                    {
-                        'error': 'Authentication required to add a comment'
-                    },
-                    status=HTTP_401_UNAUTHORIZED
-                )
-            serializer = CreateCommentSerializer(
-                data=request.data,
-                context={'request': request}
-            )
-            if serializer.is_valid():
-                comment = serializer.save(author=request.user, post=post)
-
-
+        # POST
         if not request.user.is_authenticated:
+            logger.warning("Unauthorized comment creation attempt by anonymous user")
             return Response(
-                {'error': 'Authentication required to add a comment'},
+                {'error': _('Authentication required to add a comment')},
                 status=HTTP_401_UNAUTHORIZED
             )
 
         serializer = CreateCommentSerializer(
-            data=request.data, context={'request': request}
+            data=request.data,
+            context={'request': request}
         )
         if serializer.is_valid():
             comment = serializer.save(author=request.user, post=post)
             publish_comment_event(comment)
             logger.info(f"Comment added by {request.user.email} to post: {post.title}")
             return Response(
-                {'message': 'Comment added successfully', 'comment': CommentSerializer(comment).data},
+                {
+                    'message': _('Comment added successfully'),
+                    'comment': CommentSerializer(comment).data
+                },
                 status=HTTP_201_CREATED
             )
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
@@ -614,12 +603,11 @@ class CommentViewSet(ViewSet):
         try:
             comment = Comment.objects.select_related('author', 'post').get(pk=pk)
         except Comment.DoesNotExist:
-            return Response({'error': 'Comment not found'}, status=HTTP_404_NOT_FOUND)
+            return Response({'error': _('Comment not found')}, status=HTTP_404_NOT_FOUND)
 
-        
         if comment.post.status == Post.Status.DRAFT:
             if not request.user.is_authenticated or comment.post.author != request.user:
-                return Response({'error': 'Comment not found'}, status=HTTP_404_NOT_FOUND)
+                return Response({'error': _('Comment not found')}, status=HTTP_404_NOT_FOUND)
 
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=HTTP_200_OK)
@@ -627,38 +615,38 @@ class CommentViewSet(ViewSet):
     def destroy(self, request, pk=None) -> Response:
         if not request.user.is_authenticated:
             return Response(
-                {'error': 'Authentication required to delete a comment'},
+                {'error': _('Authentication required to delete a comment')},
                 status=HTTP_401_UNAUTHORIZED
             )
         try:
             comment = Comment.objects.get(pk=pk)
         except Comment.DoesNotExist:
-            return Response({'error': 'Comment not found'}, status=HTTP_404_NOT_FOUND)
+            return Response({'error': _('Comment not found')}, status=HTTP_404_NOT_FOUND)
 
         if comment.author != request.user:
             return Response(
-                {'error': 'You do not have permission to delete this comment'},
+                {'error': _('You do not have permission to delete this comment')},
                 status=HTTP_403_FORBIDDEN
             )
 
         comment.delete()
         logger.info(f"Comment {pk} deleted by {request.user.email}")
-        return Response({'message': 'Comment deleted successfully'}, status=HTTP_204_NO_CONTENT)
+        return Response({'message': _('Comment deleted successfully')}, status=HTTP_204_NO_CONTENT)
 
     def partial_update(self, request, pk=None) -> Response:
         if not request.user.is_authenticated:
             return Response(
-                {'error': 'Authentication required to update a comment'},
+                {'error': _('Authentication required to update a comment')},
                 status=HTTP_401_UNAUTHORIZED
             )
         try:
             comment = Comment.objects.get(pk=pk)
         except Comment.DoesNotExist:
-            return Response({'error': 'Comment not found'}, status=HTTP_404_NOT_FOUND)
+            return Response({'error': _('Comment not found')}, status=HTTP_404_NOT_FOUND)
 
         if comment.author != request.user:
             return Response(
-                {'error': 'You do not have permission to edit this comment'},
+                {'error': _('You do not have permission to edit this comment')},
                 status=HTTP_403_FORBIDDEN
             )
 
@@ -669,7 +657,10 @@ class CommentViewSet(ViewSet):
             updated_comment = serializer.save()
             logger.info(f"Comment {pk} updated by {request.user.email}")
             return Response(
-                {'message': 'Comment updated successfully', 'comment': CommentSerializer(updated_comment).data},
+                {
+                    'message': _('Comment updated successfully'),
+                    'comment': CommentSerializer(updated_comment).data
+                },
                 status=HTTP_200_OK
             )
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
