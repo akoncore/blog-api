@@ -28,6 +28,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView
 )
+from apps.blog.views_async import StasView
 
 
 
@@ -36,6 +37,7 @@ urlpatterns = [
     path('api/', include("apps.users.urls")),
     path('api/', include("apps.blog.urls")),
     path('__debug__/', include('debug_toolbar.urls')),
+    path('api/stats/',StasView.as_view(),name='stats'),
 
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
