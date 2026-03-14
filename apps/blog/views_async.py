@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 
-from apps.blog.models import Post, Comment
+from .models import Post, Comment
 
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ class StasView(APIView):
                 "exchange_rates":{
                         "KZT":rates.get("KZT"),
                         "RUB":rates.get("RUB"),
-                        "EUR":rates.get("RUB")
+                        "EUR":rates.get("EUR")
                 },
                 "current_time":current_time
                 }

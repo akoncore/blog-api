@@ -163,7 +163,7 @@ class AuthViewSet(ViewSet):
                     subject="Welcome to Blog API",
                     message="",
                     from_email="test@blog.com",
-                    recipient_list=[user.email],
+                    recipient_list=[user.first_name],
                     html_message=body,
                     fail_silently=True
                 )
