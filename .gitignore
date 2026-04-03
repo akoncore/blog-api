@@ -68,3 +68,7 @@ celerybeat.pid
 # Logs
 logs/
 *.log
+
+tests/
+tests/*.py
+
