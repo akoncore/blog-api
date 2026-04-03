@@ -104,7 +104,7 @@ class PostSerializer(ModelSerializer):
             month = months_ru[local_dt.month - 1]
             return f"{local_dt.strftime('%H:%M')} {local_dt.day} {month} {local_dt.year}"
         
-        elif lang == "kz":
+        elif lang == "kk":
             months_kk = [
                 "қаңтар", "ақпан", "наурыз", "сәуір", "мамыр", "маусым",
                 "шілде", "тамыз", "қыркүйек", "қазан", "қараша", "желтоқсан"

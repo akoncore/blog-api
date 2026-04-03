@@ -81,7 +81,7 @@ class LanguageAndTimezoneMiddleware:
     def _lang_from_accept_header(request,supported:set)-> str | None:
         accept_header = request.META.get('HTTP_ACCEPT_LANGUAGE',"")
         for segment in accept_header.split(","):
-            code = segment.strip().split(",")[0].strip()[:2].lower()
+            code = segment.strip().split(";")[0].strip()[:2].lower()
             if code in supported:
                 return code
         return None

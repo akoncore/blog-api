@@ -327,11 +327,11 @@ class PostViewSet(ViewSet):
 
         serializer = CreatePostSerializer(
             data=request.data,
-            context={'request': request}
+            context={'request': request}        
         )
         if serializer.is_valid():
             post = serializer.save(author=request.user)
-            cache.delete('published_posts')
+          
             from django.conf import settings as django_settings
             for lang_code in django_settings.SUPPORTED_LANGUAGES:
                 cache.delete(f"Published_posts_{lang_code}")
@@ -405,7 +405,7 @@ class PostViewSet(ViewSet):
         )
         if serializer.is_valid():
             updated_post = serializer.save()
-            cache.delete('published_posts')
+
             from django.conf import settings as django_settings
             for lang_code in django_settings.SUPPORTED_LANGUAGES:
                 cache.delete(f"Published_posts_{lang_code}")
@@ -445,7 +445,7 @@ class PostViewSet(ViewSet):
 
         title = post.title
         post.delete()
-        cache.delete('published_posts')
+
         from django.conf import settings as django_settings
         for lang_code in django_settings.SUPPORTED_LANGUAGES:
             cache.delete(f"Published_posts_{lang_code}")

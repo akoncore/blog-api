@@ -89,7 +89,9 @@ class ChangePasswordSerializer(Serializer):
     new_password_confirm = CharField(write_only=True, required=True)
 
 
-    def validate_old_password(self, value: str) -> str:
+    def validate_old_password(self, value: str) -> str: 
+        
+        user = self.context['request'].user
 
         if not user.check_password(value):
             raise ValidationError(
@@ -99,7 +101,7 @@ class ChangePasswordSerializer(Serializer):
             )
 
         
-        user = self.context['request'].user
+       
         if not user.check_password(value):
             raise ValidationError({'error': 'Old password is incorrect'})
         return value  
