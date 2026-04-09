@@ -31,6 +31,10 @@ from drf_spectacular.utils import (
     OpenApiResponse,
 )
 
+#channels
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 #Project modules
 from .models import Post, Comment
 from .serializers import (
@@ -504,6 +508,24 @@ class PostViewSet(ViewSet):
         if serializer.is_valid():
             comment = serializer.save(author=request.user, post=post)
             publish_comment_event(comment)
+
+            layer = get_channel_layer()
+            group_name = f'post_{post.id}_comments'
+
+            async_to_sync(layer.group_send)(
+                group_name,
+                {
+                    'type': 'comment_message',
+                    'data':{
+                        "comment_id": comment.id,
+                        "post_id": post.id,
+                        "author_id": comment.author.id,
+                    },
+                    "body":comment.body,
+                    "created_at": comment.created_at.isoformat(),
+                }
+            )
+
             logger.info(f"Comment added by {request.user.email} to post: {post.title}")
             return Response(
                 {

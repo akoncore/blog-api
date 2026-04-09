@@ -12,6 +12,11 @@ import os
 #Django modules
 from django.core.asgi import get_asgi_application
 
+#Channels modules
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from apps.notifications.routing import websocket_urlpatterns
+
 #Project modules
 from settings.conf import ENV_ID,ENV_POSSIBLE_OPTIONS
 
@@ -20,4 +25,13 @@ assert ENV_ID in ENV_POSSIBLE_OPTIONS, f"Invalid Env ID, Possible options: {ENV_
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', f'settings.env.{ENV_ID}')
 
-application = get_asgi_application()
+application = ProtocolTypeRouter(
+    {
+        "http":get_asgi_application(),
+        "websocket":AuthMiddlewareStack(
+            URLRouter(
+                websocket_urlpatterns
+            )
+        )
+    }
+)

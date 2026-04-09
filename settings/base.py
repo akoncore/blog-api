@@ -7,7 +7,6 @@ from datetime import timedelta
 from settings.conf import *
 
 
-
 #-----------------------
 #PATH
 #
@@ -22,6 +21,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 #APPS
 #
 DJANGO_AND_THIRD_PARTY_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -36,12 +36,15 @@ DJANGO_AND_THIRD_PARTY_APPS = [
     'drf_spectacular',
     'parler',
     'httpx',
-    'adrf'
+    'adrf',
+    'channels',
+    'channels_redis',
 ]
 PROJECT_APPS = [
     'apps.blog',
     'apps.users',
     'apps.core',
+    'apps.notifications',
 ]
 INSTALLED_APPS = DJANGO_AND_THIRD_PARTY_APPS + PROJECT_APPS
 
@@ -117,6 +120,16 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+}
+
+#Channels
+CHANNELS_LAYERS = {
+    "default":{
+        "BACKEND":"channels_redis.core.RedisChannelLayer",
+        "CONFIG":{
+            'hosts': [os.environ.get('REDIS_URL', ('127.0.0.1', 6379))],
+        }
+    }
 }
 
 #---------------------------
