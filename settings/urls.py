@@ -29,6 +29,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView
 )
 from apps.blog.views_async import StasView
+from apps.notifications.see_view import post_stream
 
 
 
@@ -38,6 +39,8 @@ urlpatterns = [
     path('api/', include("apps.blog.urls")),
     path('__debug__/', include('debug_toolbar.urls')),
     path('api/stats/',StasView.as_view(),name='stats'),
+
+    path('api/posts/stream/', post_stream, name='post_stream'),
 
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

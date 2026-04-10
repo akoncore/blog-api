@@ -63,7 +63,7 @@ class CommentConsumer(AsyncWebsocketConsumer):
         handles the reception of a comment message and sends it to the WebSocket client.
         """
         await self.send(
-            text_data=json.dumps(event["meassage"])
+            text_data=json.dumps(event.get("message", {}))
         )
 
     #authentication and post existence check methods
@@ -72,21 +72,21 @@ class CommentConsumer(AsyncWebsocketConsumer):
         Atuhenticates the user using JWT token from the query parameters.
         """
 
-        token = self.scope["query_string", b""].decode()
+        token = self.scope.get("query_string", b"").decode()
         params = dict(
-            params.split("=") for params in token.split("&") if "=" in params
+            param.split("=") for param in token.split("&") if "=" in param
         )
 
-        jwt_token = params.get("token")     
+        jwt_token = params.get("token")
         if jwt_token is None:
             return None
         try:
-            accesc_token = AccessToken(jwt_token)
+            access_token = AccessToken(jwt_token)
             user = await database_sync_to_async(
-                User.objects.get(id=accesc_token["user_id"])
+                User.objects.get(id=access_token["user_id"])
             )
             return user
-        except Exception as e:
+        except Exception:
             return None
     
     #Post existence check method
