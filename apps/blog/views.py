@@ -7,6 +7,7 @@ from logging import getLogger
 from django.core.cache import cache
 from django.db.models import Q
 from django.utils.translation import gettext as _
+from django.conf import settings
 
 #REST Framework
 from rest_framework.viewsets import ViewSet
@@ -34,6 +35,9 @@ from drf_spectacular.utils import (
 #channels
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+
+#redis
+import redis as sync_redis
 
 #Project modules
 from .models import Post, Comment
@@ -105,6 +109,31 @@ def publish_comment_event(
     except Exception as e:
         logger.error(f"Failed to publish comment event: {str(e)}")
 
+
+def _publish_post_event(
+        post:Post
+)->None:
+    try:
+        redis_client = cache.client.get_client()
+
+        event_data = {
+            'event': 'post_updated',
+            'data': {
+                'post_id': post.id,
+                'title': post.title,
+                'author_id': post.author.id,
+                'author_name': post.author.first_name,
+                'status': post.status,
+            },
+            'created_at': post.created_at.isoformat()
+        }
+
+        message = json.dumps(event_data, default=str)
+        redis_client.publish('posts_feed', message)
+        logger.info(f"Published post event for post id: {post.id}")
+
+    except Exception as e:
+        logger.error(f"Failed to publish post event: {str(e)}")
 
 @extend_schema_view(
     list=extend_schema(
@@ -335,10 +364,14 @@ class PostViewSet(ViewSet):
         )
         if serializer.is_valid():
             post = serializer.save(author=request.user)
-          
+
             from django.conf import settings as django_settings
             for lang_code in django_settings.SUPPORTED_LANGUAGES:
                 cache.delete(f"Published_posts_{lang_code}")
+
+            if post.status == Post.Status.PUBLISHED:
+                _publish_post_event(post)
+
             logger.info(f"Post created by {request.user.email}: {post.title}")
             return Response(
                 {
@@ -407,6 +440,7 @@ class PostViewSet(ViewSet):
         serializer = EditPostSerializer(
             post, data=request.data, partial=True, context={'request': request}
         )
+        old_status = post.status
         if serializer.is_valid():
             updated_post = serializer.save()
 
@@ -414,6 +448,12 @@ class PostViewSet(ViewSet):
             for lang_code in django_settings.SUPPORTED_LANGUAGES:
                 cache.delete(f"Published_posts_{lang_code}")
             logger.info(f"Post updated by {request.user.email}: {updated_post.title}")
+
+            was_published = old_status == Post.Status.PUBLISHED
+            is_published = updated_post.status == Post.Status.PUBLISHED
+
+            if is_published and not was_published:
+                _publish_post_event(updated_post)
 
             return Response(
                 {

@@ -47,6 +47,7 @@ class CommentConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
+    #WebSocket disconnection handler
     async def disconnect(self, code):
         """
         Handles the WebSocket disconnection when a client disconnects.
@@ -56,6 +57,7 @@ class CommentConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
+    #Message handler for receiving comment messages
     async def comment_message(self, event):
         """
         handles the reception of a comment message and sends it to the WebSocket client.
@@ -70,12 +72,12 @@ class CommentConsumer(AsyncWebsocketConsumer):
         Atuhenticates the user using JWT token from the query parameters.
         """
 
-        token = self.scope["query_string"].decode()
+        token = self.scope["query_string", b""].decode()
         params = dict(
             params.split("=") for params in token.split("&") if "=" in params
         )
 
-        jwt_token = params.get("token")
+        jwt_token = params.get("token")     
         if jwt_token is None:
             return None
         try:
