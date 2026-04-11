@@ -4,7 +4,7 @@ from . import consumer
 
 websocket_urlpatterns = [
     re_path(
-        r'^posts/(?P<post_slug>[^/]+)/comments/$',
+        r"^ws/posts/(?P<post_slug>[-\w]+)/comments/$",
         consumer.CommentConsumer.as_asgi()
     )
 ]

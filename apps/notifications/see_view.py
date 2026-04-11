@@ -50,7 +50,7 @@ async def post_stream(request):
 
                 raw = message["data"]
                 try:
-                    data = json.loads(raw)
+                    data = json.loads(raw) #json decode the message data
                 except (json.JSONDecodeError, TypeError):
                     continue
 
@@ -77,8 +77,9 @@ async def post_stream(request):
         content_type="text/event-stream",
     )
 
-    response['Cache-Control'] = 'no-cache'
-    response['X-Accel-Buffering'] = 'no'
+    response['Cache-Control'] = "no-cache"
+    response['X-Accel-Buffering'] = "no"
+
 
     return response
 

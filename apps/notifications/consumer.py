@@ -1,4 +1,5 @@
 import json 
+from urllib.parse import parse_qs
 
 #Django modules
 from django.contrib.auth import get_user_model
@@ -30,13 +31,13 @@ class CommentConsumer(AsyncWebsocketConsumer):
         #Jwt authentication
         user = await self._authenticate_user()
         if user is None:
-            await self.close_code(4001)  # Close with an error code for unauthorized access
+            await self.close(code=4001)  # Close with an error code for unauthorized access
             return
         
         #Post existence check
         exists = await self._post_exists()
         if not exists:
-            await self.close_code(4004)  # Close with an error code for post not found
+            await self.close(code=4004)  # Close with an error code for post not found
             return
         
         #Group addition
@@ -72,23 +73,26 @@ class CommentConsumer(AsyncWebsocketConsumer):
         Atuhenticates the user using JWT token from the query parameters.
         """
 
-        token = self.scope.get("query_string", b"").decode()
-        params = dict(
-            param.split("=") for param in token.split("&") if "=" in param
-        )
-
-        jwt_token = params.get("token")
-        if jwt_token is None:
-            return None
         try:
+            token = self.scope.get("query_string", b'').decode('utf-8')
+            params = parse_qs(token)
+
+            jwt_list = params.get("token",None)
+            jwt_token = jwt_list[0]
+
+            if not jwt_token:
+                return None
+            
             access_token = AccessToken(jwt_token)
-            user = await database_sync_to_async(
-                User.objects.get(id=access_token["user_id"])
-            )
+            user_id = access_token['user_id']
+
+            user = await database_sync_to_async(User.objects.get)(id=user_id)
             return user
-        except Exception:
-            return None
+        
+        except Exception as e:
+            return None      
     
+
     #Post existence check method
     @database_sync_to_async
     def _post_exists(self):
