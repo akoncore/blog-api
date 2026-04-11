@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/posts/stream/', post_stream, name='post_stream'),
     path('api/', include("apps.users.urls")),
     path('api/', include("apps.blog.urls")),
+    path('api/', include("apps.notifications.urls")),
     path('__debug__/', include('debug_toolbar.urls')),
     path('api/stats/',StasView.as_view(),name='stats'),
 
