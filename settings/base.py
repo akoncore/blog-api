@@ -1,7 +1,9 @@
 #Python Modules
 import os 
+from datetime import timezone
 from pathlib import Path
 from datetime import timedelta
+from decouple import config
 
 #Project Modules
 from settings.conf import *
@@ -130,7 +132,14 @@ CHANNEL_LAYERS = {
     }
 }
 
-#---------------------------
+#Celery
+_celery_redis_url = f"redis://{BLOG_REDIS_HOST}:{BLOG_REDIS_PORT}/{BLOG_CELERY_DB}"
+CELERY_BROKER_URL = _celery_redis_url
+CELERY_BACKEND_URL = _celery_redis_url
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
 #Logging
 #
 LOG_DIR = Path(BASE_DIR) / "logs"
@@ -260,9 +269,11 @@ LOGGING = {
 
 
 # Redis Configuration
-BLOG_REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-BLOG_REDIS_PORT = os.getenv('REDIS_PORT', '6379')
+BLOG_REDIS_HOST = config('REDIS_HOST',cast=str ,default='localhost')
+BLOG_REDIS_PORT = config('REDIS_PORT',cast=str ,default=6379)
 BLOG_REDIS_URL = f"redis://{BLOG_REDIS_HOST}:{BLOG_REDIS_PORT}/0"
+BLOG_CELERY_DB = config('BLOG_CELERY_DB', cast=int, default=1)
+REDIS_BLOG_DB = config('REDIS_BLOG_DB', cast=int, default=2)
 
 # Django Cache
 CACHES = {

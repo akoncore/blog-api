@@ -39,6 +39,7 @@ from .serializers import (
 )
 from .models import CustomUser
 from .permissions import IsOwnerOrReadOnly
+from .tasks import send_welcome_email
 
 logger = getLogger(__name__)
 
@@ -156,26 +157,16 @@ class AuthViewSet(ViewSet):
 
             refresh = RefreshToken.for_user(user)
 
-            with translation.override(user_lang):
-                body = render_to_string(
-                    "emails/welcome/body.html",
-                    {"first_name": user.first_name, "lang": user_lang}
-                )
-                message = _('User registered successfully')
-                send_mail(
-                    subject="Welcome to Blog API",
-                    message="",
-                    from_email="test@blog.com",
-                    recipient_list=[user.email],
-                    html_message=body,
-                    fail_silently=True
-                )
+            send_welcome_email.delay(
+                user_id = user.id,
+                lang = user.preferred_language
+            )
 
             logger.info('User registered successfully: %s', user.email)
 
             return Response(
                 {
-                    'message': message,
+                    'message':"User registered successfully",
                     'user': UserProfileSerializer(user).data,
                     'tokens': {
                         'access': str(refresh.access_token),
