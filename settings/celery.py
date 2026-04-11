@@ -2,7 +2,7 @@ import os
 
 # Celery Configurationq
 from celery import Celery
-from django.conf import ENV_ID
+from settings.conf import ENV_ID
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', f'settings.env.{ENV_ID}')
 app = Celery('blog_api')
