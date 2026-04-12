@@ -13,6 +13,7 @@ logger = getLogger(__name__)
 @shared_task(
     bind=True,
     max_retries=3,
+    retry_backoff=True,
     default_retry_delay=60,  # Retry after 1 minute
 )
 def send_welcome_email(

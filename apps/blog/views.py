@@ -49,7 +49,10 @@ from .serializers import (
 from .permissions import (
     IsPublishedOrEdit, IsAddCommentOrReadOnly, IsCreatePostOrReadOnly
 )
+from .tasks import invalidate_post_cache
 
+#notification
+from apps.notifications.tasks import process_new_comment
 
 logger = getLogger(__name__)
 
@@ -365,9 +368,7 @@ class PostViewSet(ViewSet):
         if serializer.is_valid():
             post = serializer.save(author=request.user)
 
-            from django.conf import settings as django_settings
-            for lang_code in django_settings.SUPPORTED_LANGUAGES:
-                cache.delete(f"Published_posts_{lang_code}")
+            invalidate_post_cache.delay()
 
             if post.status == Post.Status.PUBLISHED:
                 _publish_post_event(post)
@@ -444,9 +445,8 @@ class PostViewSet(ViewSet):
         if serializer.is_valid():
             updated_post = serializer.save()
 
-            from django.conf import settings as django_settings
-            for lang_code in django_settings.SUPPORTED_LANGUAGES:
-                cache.delete(f"Published_posts_{lang_code}")
+            invalidate_post_cache.delay()
+
             logger.info(f"Post updated by {request.user.email}: {updated_post.title}")
 
             was_published = old_status == Post.Status.PUBLISHED
@@ -490,9 +490,8 @@ class PostViewSet(ViewSet):
         title = post.title
         post.delete()
 
-        from django.conf import settings as django_settings
-        for lang_code in django_settings.SUPPORTED_LANGUAGES:
-            cache.delete(f"Published_posts_{lang_code}")
+        invalidate_post_cache.delay()
+
         logger.info(f"Post deleted by {request.user.email}: {title}")
 
         return Response(
@@ -547,7 +546,8 @@ class PostViewSet(ViewSet):
         )
         if serializer.is_valid():
             comment = serializer.save(author=request.user, post=post)
-            publish_comment_event(comment)
+            
+            process_new_comment.delay(comment_id = comment.id)
 
             layer = get_channel_layer()
             group_name = f'post_{post.id}_comments'
