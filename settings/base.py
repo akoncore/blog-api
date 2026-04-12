@@ -292,6 +292,10 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
+# Flower settings
+FLOWER_BASIC_AUTH_USER = os.environ.get('BLOG_FLOWER_USER', 'admin')
+FLOWER_BASIC_AUTH_PASSWORD = os.environ.get('BLOG_FLOWER_PASSWORD', 'changeme')
+
 # ----------------------------------------------
 # Debug Toolbar
 #
