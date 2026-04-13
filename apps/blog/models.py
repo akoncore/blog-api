@@ -98,6 +98,7 @@ class Post(Model):
     class Status(TextChoices):
         DRAFT = 'draft','Draft'
         PUBLISHED = 'published','Published'
+        SCHEDULED = 'scheduled','Scheduled'
 
     status = CharField(
         max_length=10,
@@ -110,6 +111,10 @@ class Post(Model):
     updated_at = DateTimeField(
         auto_now=True
     )
+    publish_at = DateTimeField(
+        null=True,
+        blank=True
+    )   
 
     def __str__(self)-> str:
         return f"Post author: {self.author},category: {self.category}, title: {self.title}"

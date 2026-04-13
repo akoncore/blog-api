@@ -29,13 +29,16 @@ from drf_spectacular.views import (
     SpectacularSwaggerView
 )
 from apps.blog.views_async import StasView
+from apps.notifications.see_view import post_stream
 
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/posts/stream/', post_stream, name='post_stream'),
     path('api/', include("apps.users.urls")),
     path('api/', include("apps.blog.urls")),
+    path('api/', include("apps.notifications.urls")),
     path('__debug__/', include('debug_toolbar.urls')),
     path('api/stats/',StasView.as_view(),name='stats'),
 

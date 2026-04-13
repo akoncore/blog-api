@@ -1,11 +1,12 @@
 #Python Modules
 import os 
+from datetime import timezone
 from pathlib import Path
 from datetime import timedelta
+from decouple import config
 
 #Project Modules
 from settings.conf import *
-
 
 
 #-----------------------
@@ -22,6 +23,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 #APPS
 #
 DJANGO_AND_THIRD_PARTY_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -36,12 +38,15 @@ DJANGO_AND_THIRD_PARTY_APPS = [
     'drf_spectacular',
     'parler',
     'httpx',
-    'adrf'
+    'adrf',
+    'channels',
+    'channels_redis',
 ]
 PROJECT_APPS = [
     'apps.blog',
     'apps.users',
     'apps.core',
+    'apps.notifications',
 ]
 INSTALLED_APPS = DJANGO_AND_THIRD_PARTY_APPS + PROJECT_APPS
 
@@ -119,7 +124,32 @@ SIMPLE_JWT = {
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
 
-#---------------------------
+#Channels
+CHANNEL_LAYERS = {
+    "default":{
+        "BACKEND":"channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [("localhost", 6379)]},
+    }
+}
+
+# Redis Configuration
+BLOG_REDIS_HOST = config('REDIS_HOST',cast=str ,default='localhost')
+BLOG_REDIS_PORT = config('REDIS_PORT',cast=str ,default=6379)
+BLOG_REDIS_URL = f"redis://{BLOG_REDIS_HOST}:{BLOG_REDIS_PORT}/0"
+BLOG_CELERY_DB = config('BLOG_CELERY_DB', cast=int, default=1)
+REDIS_BLOG_DB = config('REDIS_BLOG_DB', cast=int, default=2)
+
+
+#Celery
+_celery_redis_url = f"redis://{BLOG_REDIS_HOST}:{BLOG_REDIS_PORT}/{BLOG_CELERY_DB}"
+CELERY_BROKER_URL = _celery_redis_url
+CELERY_BACKEND_URL = _celery_redis_url
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = "UTC"
+
+
 #Logging
 #
 LOG_DIR = Path(BASE_DIR) / "logs"
@@ -248,24 +278,6 @@ LOGGING = {
 }
 
 
-# Redis Configuration
-BLOG_REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-BLOG_REDIS_PORT = os.getenv('REDIS_PORT', '6379')
-BLOG_REDIS_URL = f"redis://{BLOG_REDIS_HOST}:{BLOG_REDIS_PORT}/0"
-
-# Django Cache
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': BLOG_REDIS_URL,
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-        'KEY_PREFIX': 'myapp',
-        'TIMEOUT': 300,
-    }
-}
-
 # Rate Limiting
 RATELIMIT_ENABLE = True
 RATELIMIT_USE_CACHE = 'default'
@@ -279,6 +291,10 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# Flower settings
+FLOWER_BASIC_AUTH_USER = os.environ.get('BLOG_FLOWER_USER', 'admin')
+FLOWER_BASIC_AUTH_PASSWORD = os.environ.get('BLOG_FLOWER_PASSWORD', 'changeme')
 
 # ----------------------------------------------
 # Debug Toolbar
