@@ -8,11 +8,11 @@ from django.conf import settings
 from celery import shared_task
 
 from .models import Post 
-from .views import _publish_post_event
+from .events import _publish_post_event 
 
 logger = logging.getLogger(__name__)
 
-shared_task(
+@shared_task(
     name = 'blog.invalidate_post_cache',
     max_retries = 1,
     retry_backoff=True
@@ -33,7 +33,7 @@ def invalidate_post_cache()->dict:
     return deleted_keys
 
 
-shared_task(
+@shared_task(
     name = 'blog.posts_create_update',
     max_retries = 1,
     retry_backoff=True
@@ -71,7 +71,7 @@ def posts_create_update(
             "error": e
         }
 
-shared_task(
+@shared_task(
     autoretry_for=(Exception,),
     retry_backoff=True,
     max_retries = 3,

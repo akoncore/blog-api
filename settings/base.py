@@ -124,20 +124,21 @@ SIMPLE_JWT = {
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
 
-#Channels
-CHANNEL_LAYERS = {
-    "default":{
-        "BACKEND":"channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [("localhost", 6379)]},
-    }
-}
-
 # Redis Configuration
 BLOG_REDIS_HOST = config('REDIS_HOST',cast=str ,default='localhost')
 BLOG_REDIS_PORT = config('REDIS_PORT',cast=str ,default=6379)
 BLOG_REDIS_URL = f"redis://{BLOG_REDIS_HOST}:{BLOG_REDIS_PORT}/0"
 BLOG_CELERY_DB = config('BLOG_CELERY_DB', cast=int, default=1)
 REDIS_BLOG_DB = config('REDIS_BLOG_DB', cast=int, default=2)
+
+
+#Channels
+CHANNEL_LAYERS = {
+    "default":{
+        "BACKEND":"channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [(BLOG_REDIS_HOST, 6379)]},
+    }
+}
 
 
 #Celery

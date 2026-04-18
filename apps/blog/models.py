@@ -29,7 +29,7 @@ class Category(TranslatableModel):
     )
     )
     slug = SlugField(
-        unique=True
+        unique=True 
     )
 
     class Meta:
