@@ -50,6 +50,7 @@ from .permissions import (
     IsPublishedOrEdit, IsAddCommentOrReadOnly, IsCreatePostOrReadOnly
 )
 from .tasks import invalidate_post_cache
+from .events import _publish_post_event
 
 #notification
 from apps.notifications.tasks import process_new_comment
@@ -113,30 +114,7 @@ def publish_comment_event(
         logger.error(f"Failed to publish comment event: {str(e)}")
 
 
-def _publish_post_event(
-        post:Post
-)->None:
-    try:
-        redis_client = cache.client.get_client()
 
-        event_data = {
-            'event': 'post_updated',
-            'data': {
-                'post_id': post.id,
-                'title': post.title,
-                'author_id': post.author.id,
-                'author_name': post.author.first_name,
-                'status': post.status,
-            },
-            'created_at': post.created_at.isoformat()
-        }
-
-        message = json.dumps(event_data, default=str)
-        redis_client.publish('posts_feed', message)
-        logger.info(f"Published post event for post id: {post.id}")
-
-    except Exception as e:
-        logger.error(f"Failed to publish post event: {str(e)}")
 
 @extend_schema_view(
     list=extend_schema(
@@ -501,7 +479,7 @@ class PostViewSet(ViewSet):
 
     @action(
         detail=True, 
-        methods=['get', 'post'], 
+        methods=['get','post'], 
         url_path='comments'
     )
     def comments(
