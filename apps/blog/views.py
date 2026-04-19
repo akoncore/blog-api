@@ -479,7 +479,7 @@ class PostViewSet(ViewSet):
 
     @action(
         detail=True, 
-        methods=['get','post'], 
+        methods=['get'], 
         url_path='comments'
     )
     def comments(
@@ -508,9 +508,49 @@ class PostViewSet(ViewSet):
             return Response(
                 serializer.data, 
                 status=HTTP_200_OK
-            )
+            ) 
 
-        # POST
+    @action(
+        detail=False,
+        methods=['post'],
+        url_path='comments'
+    )
+    def CommentsPost(
+        self,
+        request,
+        slug=None,
+    )->Response:
+        post = None
+        if slug:
+            try:
+                post = Post.objects.get(slug=slug)
+            except Post.DoesNotExist:
+                return Response({'error': _('Post not found')}, status=HTTP_404_NOT_FOUND)
+        else:
+            post_identifier = (
+                request.data.get('post') or
+                request.data.get('post_id') or
+                request.data.get('post_slug')
+            )
+            if not post_identifier:
+                return Response(
+                    {'error': _('Post identifier is required')},
+                    status=HTTP_400_BAD_REQUEST
+                )
+
+            try:
+                if isinstance(post_identifier, int):
+                    post = Post.objects.get(pk=post_identifier)
+                elif isinstance(post_identifier, str) and post_identifier.isdigit():
+                    try:
+                        post = Post.objects.get(pk=int(post_identifier))
+                    except Post.DoesNotExist:
+                        post = Post.objects.get(slug=post_identifier)
+                else:
+                    post = Post.objects.get(slug=post_identifier)
+            except Post.DoesNotExist:
+                return Response({'error': _('Post not found')}, status=HTTP_404_NOT_FOUND)
+
         if not request.user.is_authenticated:
             logger.warning("Unauthorized comment creation attempt by anonymous user")
             return Response(
@@ -553,7 +593,6 @@ class PostViewSet(ViewSet):
                 status=HTTP_201_CREATED
             )
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-
 
 @extend_schema_view(
     list=extend_schema(
