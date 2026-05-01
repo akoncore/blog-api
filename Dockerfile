@@ -28,7 +28,7 @@ COPY . .
 
 #Create non-root user
 RUN useradd -m -u 1000 appuser && \
-    mkdir -p /app/staticfiles /app/media/ /app/db && \
+    mkdir -p /app/staticfiles /app/media /app/db /app/logs && \
     chown -R appuser:appuser /app
 
 COPY --chown=appuser:appuser scripts/entrypoint.sh /entrypoint.sh
