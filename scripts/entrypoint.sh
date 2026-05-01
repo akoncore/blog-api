@@ -1,4 +1,4 @@
-#!/bin/bash
+r#!/bin/bash
 
 set -e  
 
@@ -10,6 +10,9 @@ until redis-cli -h ${BLOG_REDIS_HOST:-redis} -p ${BLOG_REDIS_PORT:-6379} ping > 
 done
 
 echo "✓ Redis is up"
+
+mkdir -p /app/logs
+chown -R appuser:appuser /app/logs || true
 
 echo "Running migrations..."
 python manage.py migrate --noinput
